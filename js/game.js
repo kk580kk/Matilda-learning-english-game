@@ -28,45 +28,58 @@ class MatildaGame {
     }
 
     bindEvents() {
-        // 开始按钮
-        document.getElementById('start-btn').addEventListener('click', () => {
-            this.showScreen('level-select');
-        });
+        // 打开魔法书按钮
+        const openBookBtn = document.getElementById('openBookBtn');
+        if (openBookBtn) {
+            openBookBtn.addEventListener('click', () => {
+                this.showScreen('level-select');
+            });
+        }
 
         // 返回按钮
-        document.getElementById('back-btn').addEventListener('click', () => {
-            this.showScreen('start-screen');
-        });
+        const backBtn = document.getElementById('backBtn');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                this.showScreen('start-screen');
+            });
+        }
 
-        document.getElementById('game-back-btn').addEventListener('click', () => {
-            this.confirmQuit();
-        });
+        // 道具按钮 - 需要添加ID到HTML
+        const freezeBtn = document.getElementById('freezeBtn');
+        if (freezeBtn) {
+            freezeBtn.addEventListener('click', () => {
+                this.useItem('freeze');
+            });
+        }
 
-        // 道具按钮
-        document.getElementById('freeze-time').addEventListener('click', () => {
-            this.useItem('freeze');
-        });
+        const skipQuestionBtn = document.getElementById('skipQuestionBtn');
+        if (skipQuestionBtn) {
+            skipQuestionBtn.addEventListener('click', () => {
+                this.useItem('skip');
+            });
+        }
 
-        document.getElementById('skip-question').addEventListener('click', () => {
-            this.useItem('skip');
-        });
-
-        document.getElementById('remove-wrong').addEventListener('click', () => {
-            this.useItem('remove');
-        });
+        const hintBtn = document.getElementById('hintBtn');
+        if (hintBtn) {
+            hintBtn.addEventListener('click', () => {
+                this.useItem('remove');
+            });
+        }
 
         // 结果画面按钮
-        document.getElementById('next-level-btn').addEventListener('click', () => {
-            this.nextLevel();
-        });
+        const continueBtn = document.getElementById('continueBtn');
+        if (continueBtn) {
+            continueBtn.addEventListener('click', () => {
+                this.nextLevel();
+            });
+        }
 
-        document.getElementById('retry-btn').addEventListener('click', () => {
-            this.retryLevel();
-        });
-
-        document.getElementById('home-btn').addEventListener('click', () => {
-            this.showScreen('start-screen');
-        });
+        const retryBtn = document.getElementById('retryBtn');
+        if (retryBtn) {
+            retryBtn.addEventListener('click', () => {
+                this.retryLevel();
+            });
+        }
     }
 
     showScreen(screenId) {
@@ -77,7 +90,8 @@ class MatildaGame {
     }
 
     loadLevelSelect() {
-        const container = document.getElementById('levels-container');
+        const container = document.getElementById('levelsContainer');
+        if (!container) return;
         container.innerHTML = '';
 
         GAME_DATA.levels.forEach(level => {
@@ -117,14 +131,15 @@ class MatildaGame {
         // 设置怪物
         const monsterIndex = (levelId - 1) % GAME_DATA.monsters.length;
         const monster = GAME_DATA.monsters[monsterIndex];
-        document.getElementById('monster').textContent = monster.emoji;
+        const monsterEmoji = document.getElementById('monsterEmoji');
+        if (monsterEmoji) monsterEmoji.textContent = monster.emoji;
         
         // 重置血量
         this.playerHealth = GAME_DATA.gameConfig.playerHealth;
         this.monsterHealth = GAME_DATA.gameConfig.monsterHealth;
         this.updateHealthBars();
         
-        this.showScreen('game-screen');
+        this.showScreen('gameScreen');
         this.showQuestion();
         this.updateStatusBar();
     }
@@ -136,14 +151,18 @@ class MatildaGame {
         }
 
         const question = this.questions[this.currentQuestion];
-        const questionArea = document.getElementById('question-area');
+        const questionArea = document.getElementById('questionArea');
         
         // 设置题目文本
-        document.getElementById('question-text').textContent = question.question || question.context;
-        document.getElementById('question-type').textContent = this.getQuestionTypeText(question.type);
+        const questionText = document.getElementById('questionText');
+        if (questionText) questionText.textContent = question.question || question.context;
+        
+        const questionType = document.getElementById('questionType');
+        if (questionType) questionType.textContent = this.getQuestionTypeText(question.type);
         
         // 清空答题区
-        document.getElementById('answer-area').innerHTML = '';
+        const questionOptions = document.getElementById('questionOptions');
+        if (questionOptions) questionOptions.innerHTML = '';
         
         // 根据题型渲染不同界面
         switch(question.type) {
