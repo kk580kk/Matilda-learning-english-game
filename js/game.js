@@ -83,10 +83,20 @@ class MatildaGame {
     }
 
     showScreen(screenId) {
-        document.querySelectorAll('.screen').forEach(screen => {
-            screen.classList.remove('active');
-        });
-        document.getElementById(screenId).classList.add('active');
+        // 隐藏所有主要区域
+        const gameContainer = document.getElementById('gameContainer');
+        const gameScreen = document.getElementById('gameScreen');
+        const magicBook = document.getElementById('magicBook');
+        
+        if (screenId === 'start-screen' || screenId === 'level-select') {
+            // 显示主界面（魔法书）
+            if (magicBook) magicBook.style.display = 'block';
+            if (gameScreen) gameScreen.style.display = 'none';
+        } else if (screenId === 'game-screen') {
+            // 显示游戏界面
+            if (magicBook) magicBook.style.display = 'none';
+            if (gameScreen) gameScreen.style.display = 'block';
+        }
     }
 
     loadLevelSelect() {
@@ -596,18 +606,28 @@ class MatildaGame {
         const playerPercent = Math.max(0, this.playerHealth);
         const monsterPercent = Math.max(0, this.monsterHealth);
         
-        document.getElementById('player-health').style.width = playerPercent + '%';
-        document.getElementById('monster-health').style.width = monsterPercent + '%';
+        const playerHealthEl = document.getElementById('playerHealth');
+        if (playerHealthEl) playerHealthEl.style.width = playerPercent + '%';
+        
+        const monsterHealthEl = document.getElementById('monsterHealth');
+        if (monsterHealthEl) monsterHealthEl.style.width = monsterPercent + '%';
+        
+        // 更新血量文本
+        const playerHealthText = document.getElementById('playerHealthText');
+        if (playerHealthText) playerHealthText.textContent = `${this.playerHealth}/100`;
+        
+        const monsterHealthText = document.getElementById('monsterHealthText');
+        if (monsterHealthText) monsterHealthText.textContent = `${this.monsterHealth}/100`;
     }
 
     updateStatusBar() {
-        document.getElementById('coin-count').textContent = this.coins;
-        document.getElementById('current-level').textContent = this.currentLevel;
+        // 更新金币
+        const goldAmount = document.getElementById('goldAmount');
+        if (goldAmount) goldAmount.textContent = this.coins;
         
-        // 更新道具数量
-        document.getElementById('freeze-time').textContent = `❄️ ${this.items.freeze}`;
-        document.getElementById('skip-question').textContent = `⏭️ ${this.items.skip}`;
-        document.getElementById('remove-wrong').textContent = `❌ ${this.items.remove}`;
+        // 更新当前关卡
+        const gameTitle = document.getElementById('gameTitle');
+        if (gameTitle) gameTitle.textContent = `关卡 ${this.currentLevel}`;
     }
 
     questionComplete(success) {
@@ -640,35 +660,27 @@ class MatildaGame {
     }
 
     showResult(isWin, reward) {
-        this.showScreen('result-screen');
+        const resultModal = document.getElementById('resultModal');
+        if (resultModal) resultModal.style.display = 'flex';
         
-        const emoji = document.getElementById('result-emoji');
-        const title = document.getElementById('result-title');
-        const message = document.getElementById('result-message');
-        const rewards = document.getElementById('rewards');
-        const nextBtn = document.getElementById('next-level-btn');
+        const resultIcon = document.getElementById('resultIcon');
+        const resultTitle = document.getElementById('resultTitle');
+        const coinsEarned = document.getElementById('coinsEarned');
+        const damageDealt = document.getElementById('damageDealt');
+        const continueBtn = document.getElementById('continueBtn');
 
         if (isWin) {
-            emoji.textContent = '🎉';
-            title.textContent = '关卡完成！';
-            title.style.color = '#00b894';
-            message.textContent = `恭喜你打败了怪物！玛蒂尔达成功保护了图书馆！`;
-            rewards.innerHTML = `
-                <div class="reward-item">🪙 获得 ${reward} 金币</div>
-                <div class="reward-item">❤️ 生命已恢复</div>
-                <div class="reward-item">🔓 解锁下一关</div>
-            `;
-            nextBtn.style.display = 'inline-block';
+            if (resultIcon) resultIcon.textContent = '🎉';
+            if (resultTitle) resultTitle.textContent = '胜利！';
+            if (coinsEarned) coinsEarned.textContent = `+${reward}`;
+            if (damageDealt) damageDealt.textContent = '100';
+            if (continueBtn) continueBtn.style.display = 'inline-block';
         } else {
-            emoji.textContent = '😢';
-            title.textContent = '关卡失败...';
-            title.style.color = '#e74c3c';
-            message.textContent = '玛蒂尔达被打败了，但不要灰心，再试一次！';
-            rewards.innerHTML = `
-                <div class="reward-item">💡 提示：仔细阅读题目</div>
-                <div class="reward-item">🎵 多听几遍音频</div>
-            `;
-            nextBtn.style.display = 'none';
+            if (resultIcon) resultIcon.textContent = '😢';
+            if (resultTitle) resultTitle.textContent = '失败...';
+            if (coinsEarned) coinsEarned.textContent = '0';
+            if (damageDealt) damageDealt.textContent = '0';
+            if (continueBtn) continueBtn.style.display = 'none';
         }
     }
 
