@@ -505,7 +505,9 @@ class MatildaGame {
     updateTimerDisplay() {
         // 可以在界面上显示倒计时
         const progress = (this.timeLeft / GAME_DATA.gameConfig.timeLimit) * 100;
-        document.getElementById('audio-progress').style.width = progress + '%';
+        // audio-progress 元素不存在，暂时跳过
+        // const audioProgress = document.getElementById('audio-progress');
+        // if (audioProgress) audioProgress.style.width = progress + '%';
     }
 
     checkAnswer(isCorrect, element = null) {
@@ -530,17 +532,20 @@ class MatildaGame {
         this.updateHealthBars();
 
         // 播放攻击动画
-        const matilda = document.getElementById('matilda');
-        matilda.classList.add('attack');
-        setTimeout(() => matilda.classList.remove('attack'), 500);
+        const matilda = document.getElementById('playerCharacter');
+        if (matilda) {
+            matilda.classList.add('attack');
+            setTimeout(() => matilda.classList.remove('attack'), 500);
+        }
 
         // 播放击中动画
         const monster = document.getElementById('monster');
-        monster.classList.add('hit');
-        setTimeout(() => monster.classList.remove('hit'), 300);
-
-        // 显示伤害数字
-        this.showEffect(monster, `-${damage}`, 'damage-number');
+        if (monster) {
+            monster.classList.add('hit');
+            setTimeout(() => monster.classList.remove('hit'), 300);
+            // 显示伤害数字
+            this.showEffect(monster, `-${damage}`, 'damage-number');
+        }
 
         // 检查怪物是否被击败
         if (this.monsterHealth <= 0) {
@@ -562,18 +567,21 @@ class MatildaGame {
 
         // 怪物攻击动画
         const monster = document.getElementById('monster');
-        monster.style.transform = 'translateX(-30px)';
-        setTimeout(() => {
-            monster.style.transform = 'translateX(0)';
-        }, 300);
+        if (monster) {
+            monster.style.transform = 'translateX(-30px)';
+            setTimeout(() => {
+                monster.style.transform = 'translateX(0)';
+            }, 300);
+        }
 
         // 玛蒂尔达受击动画
-        const matilda = document.getElementById('matilda');
-        matilda.classList.add('hit');
-        setTimeout(() => matilda.classList.remove('hit'), 300);
-
-        // 显示伤害数字
-        this.showEffect(matilda, `-${damage}`, 'damage-number');
+        const matilda = document.getElementById('playerCharacter');
+        if (matilda) {
+            matilda.classList.add('hit');
+            setTimeout(() => matilda.classList.remove('hit'), 300);
+            // 显示伤害数字
+            this.showEffect(matilda, `-${damage}`, 'damage-number');
+        }
 
         // 检查玩家是否失败
         if (this.playerHealth <= 0) {
@@ -596,8 +604,15 @@ class MatildaGame {
         const rect = element.getBoundingClientRect();
         effect.style.left = rect.left + rect.width / 2 + 'px';
         effect.style.top = rect.top + 'px';
+        effect.style.position = 'fixed';
+        effect.style.zIndex = '9999';
         
-        document.getElementById('effects-layer').appendChild(effect);
+        const gameScreen = document.getElementById('gameScreen');
+        if (gameScreen) {
+            gameScreen.appendChild(effect);
+        } else {
+            document.body.appendChild(effect);
+        }
         
         setTimeout(() => effect.remove(), 1000);
     }
