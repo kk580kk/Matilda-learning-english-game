@@ -29,68 +29,55 @@ class MatildaGame {
 
     bindEvents() {
         // 开始按钮
-        document.getElementById('openBookBtn').addEventListener('click', () => {
+        document.getElementById('start-btn').addEventListener('click', () => {
             this.showScreen('level-select');
         });
 
         // 返回按钮
-        document.getElementById('backBtn').addEventListener('click', () => {
+        document.getElementById('back-btn').addEventListener('click', () => {
             this.showScreen('start-screen');
         });
 
-        document.getElementById('backBtn').addEventListener('click', () => {
+        document.getElementById('game-back-btn').addEventListener('click', () => {
             this.confirmQuit();
         });
 
         // 道具按钮
-        document.getElementById('freezeBtn').addEventListener('click', () => {
+        document.getElementById('freeze-time').addEventListener('click', () => {
             this.useItem('freeze');
         });
 
-        document.getElementById('skipQuestionBtn').addEventListener('click', () => {
+        document.getElementById('skip-question').addEventListener('click', () => {
             this.useItem('skip');
         });
 
-        document.getElementById('hintBtn').addEventListener('click', () => {
+        document.getElementById('remove-wrong').addEventListener('click', () => {
             this.useItem('remove');
         });
 
         // 结果画面按钮
-        document.getElementById('continueBtn').addEventListener('click', () => {
+        document.getElementById('next-level-btn').addEventListener('click', () => {
             this.nextLevel();
         });
 
-        document.getElementById('retryBtn').addEventListener('click', () => {
+        document.getElementById('retry-btn').addEventListener('click', () => {
             this.retryLevel();
         });
 
-        document.getElementById('openBookBtn').addEventListener('click', () => {
+        document.getElementById('home-btn').addEventListener('click', () => {
             this.showScreen('start-screen');
         });
     }
 
     showScreen(screenId) {
-        // 验证screenId是否为有效的屏幕ID
-        const validScreens = ['start-screen', 'level-select', 'game-screen', 'result-screen', 'shop-modal'];
-        if (!validScreens.includes(screenId)) {
-            console.warn('Invalid screen ID:', screenId);
-            return;
-        }
-        
         document.querySelectorAll('.screen').forEach(screen => {
             screen.classList.remove('active');
         });
-        
-        const targetElement = document.getElementById(screenId);
-        if (targetElement) {
-            targetElement.classList.add('active');
-        } else {
-            console.error('Screen element not found:', screenId);
-        }
+        document.getElementById(screenId).classList.add('active');
     }
 
     loadLevelSelect() {
-        const container = document.getElementById('levelsContainer');
+        const container = document.getElementById('levels-container');
         container.innerHTML = '';
 
         GAME_DATA.levels.forEach(level => {
@@ -130,7 +117,7 @@ class MatildaGame {
         // 设置怪物
         const monsterIndex = (levelId - 1) % GAME_DATA.monsters.length;
         const monster = GAME_DATA.monsters[monsterIndex];
-        document.getElementById('monsterEmoji').textContent = monster.emoji;
+        document.getElementById('monster').textContent = monster.emoji;
         
         // 重置血量
         this.playerHealth = GAME_DATA.gameConfig.playerHealth;
@@ -149,11 +136,11 @@ class MatildaGame {
         }
 
         const question = this.questions[this.currentQuestion];
-        const questionArea = document.getElementById('questionArea');
+        const questionArea = document.getElementById('question-area');
         
         // 设置题目文本
-        document.getElementById('questionText').textContent = question.question || question.context;
-        document.getElementById('questionType').textContent = this.getQuestionTypeText(question.type);
+        document.getElementById('question-text').textContent = question.question || question.context;
+        document.getElementById('question-type').textContent = this.getQuestionTypeText(question.type);
         
         // 清空答题区
         document.getElementById('answer-area').innerHTML = '';
@@ -489,7 +476,7 @@ class MatildaGame {
     updateTimerDisplay() {
         // 可以在界面上显示倒计时
         const progress = (this.timeLeft / GAME_DATA.gameConfig.timeLimit) * 100;
-        document.getElementById('songPlayer').style.width = progress + '%';
+        document.getElementById('audio-progress').style.width = progress + '%';
     }
 
     checkAnswer(isCorrect, element = null) {
@@ -514,12 +501,12 @@ class MatildaGame {
         this.updateHealthBars();
 
         // 播放攻击动画
-        const matilda = document.getElementById('playerCharacter');
+        const matilda = document.getElementById('matilda');
         matilda.classList.add('attack');
         setTimeout(() => matilda.classList.remove('attack'), 500);
 
         // 播放击中动画
-        const monster = document.getElementById('monsterEmoji');
+        const monster = document.getElementById('monster');
         monster.classList.add('hit');
         setTimeout(() => monster.classList.remove('hit'), 300);
 
@@ -545,14 +532,14 @@ class MatildaGame {
         this.updateHealthBars();
 
         // 怪物攻击动画
-        const monster = document.getElementById('monsterEmoji');
+        const monster = document.getElementById('monster');
         monster.style.transform = 'translateX(-30px)';
         setTimeout(() => {
             monster.style.transform = 'translateX(0)';
         }, 300);
 
         // 玛蒂尔达受击动画
-        const matilda = document.getElementById('playerCharacter');
+        const matilda = document.getElementById('matilda');
         matilda.classList.add('hit');
         setTimeout(() => matilda.classList.remove('hit'), 300);
 
@@ -581,7 +568,7 @@ class MatildaGame {
         effect.style.left = rect.left + rect.width / 2 + 'px';
         effect.style.top = rect.top + 'px';
         
-        document.getElementById('attackEffect').appendChild(effect);
+        document.getElementById('effects-layer').appendChild(effect);
         
         setTimeout(() => effect.remove(), 1000);
     }
@@ -590,18 +577,18 @@ class MatildaGame {
         const playerPercent = Math.max(0, this.playerHealth);
         const monsterPercent = Math.max(0, this.monsterHealth);
         
-        document.getElementById('playerHealth').style.width = playerPercent + '%';
-        document.getElementById('monsterHealth').style.width = monsterPercent + '%';
+        document.getElementById('player-health').style.width = playerPercent + '%';
+        document.getElementById('monster-health').style.width = monsterPercent + '%';
     }
 
     updateStatusBar() {
-        document.getElementById('goldAmount').textContent = this.coins;
-        document.getElementById('gameTitle').textContent = this.currentLevel;
+        document.getElementById('coin-count').textContent = this.coins;
+        document.getElementById('current-level').textContent = this.currentLevel;
         
         // 更新道具数量
-        document.getElementById('freezeBtn').textContent = `❄️ ${this.items.freeze}`;
-        document.getElementById('skipQuestionBtn').textContent = `⏭️ ${this.items.skip}`;
-        document.getElementById('hintBtn').textContent = `❌ ${this.items.remove}`;
+        document.getElementById('freeze-time').textContent = `❄️ ${this.items.freeze}`;
+        document.getElementById('skip-question').textContent = `⏭️ ${this.items.skip}`;
+        document.getElementById('remove-wrong').textContent = `❌ ${this.items.remove}`;
     }
 
     questionComplete(success) {
@@ -636,11 +623,11 @@ class MatildaGame {
     showResult(isWin, reward) {
         this.showScreen('result-screen');
         
-        const emoji = document.getElementById('resultIcon');
-        const title = document.getElementById('resultTitle');
-        const message = document.getElementById('resultModal');
-        const rewards = document.getElementById('resultModal');
-        const nextBtn = document.getElementById('continueBtn');
+        const emoji = document.getElementById('result-emoji');
+        const title = document.getElementById('result-title');
+        const message = document.getElementById('result-message');
+        const rewards = document.getElementById('rewards');
+        const nextBtn = document.getElementById('next-level-btn');
 
         if (isWin) {
             emoji.textContent = '🎉';
