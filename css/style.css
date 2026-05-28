@@ -652,7 +652,32 @@ body {
     margin-bottom: 10px;
 }
 
-/* 响应式 */
+/* 响应式 - 平板优化 */
+@media (max-width: 1024px) {
+    .game-container {
+        max-width: 100%;
+        padding: 10px;
+    }
+    
+    .magic-book {
+        padding: 20px;
+    }
+    
+    .book-pages {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .page {
+        min-height: auto;
+    }
+    
+    .levels-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* 响应式 - 手机 */
 @media (max-width: 600px) {
     .magic-book h1 {
         font-size: 1.8em;
@@ -673,5 +698,9 @@ body {
     .option-btn {
         padding: 12px 15px;
         font-size: 1em;
+    }
+    
+    .levels-container {
+        grid-template-columns: 1fr;
     }
 }
