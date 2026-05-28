@@ -223,7 +223,7 @@ class MatildaGame {
             container.appendChild(btn);
         });
 
-        document.getElementById('answer-area').appendChild(container);
+        document.getElementById('questionOptions').appendChild(container);
     }
 
     renderSpelling(question) {
@@ -279,7 +279,7 @@ class MatildaGame {
         });
         
         container.appendChild(submitBtn);
-        document.getElementById('answer-area').appendChild(container);
+        document.getElementById('questionOptions').appendChild(container);
     }
 
     handleLetterClick(tile, slots) {
@@ -357,7 +357,7 @@ class MatildaGame {
         wrapper.appendChild(container);
         wrapper.appendChild(submitBtn);
         
-        document.getElementById('answer-area').appendChild(wrapper);
+        document.getElementById('questionOptions').appendChild(wrapper);
 
         this.selectedMatch = null;
         this.currentMatches = [];
@@ -465,7 +465,7 @@ class MatildaGame {
         hint.style.cssText = 'color: #636e72;';
         container.appendChild(hint);
 
-        document.getElementById('answer-area').appendChild(container);
+        document.getElementById('questionOptions').appendChild(container);
     }
 
     startRecording() {
