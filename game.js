@@ -1,779 +1,779 @@
-const GAME_DATA = {
-    levels: [
-        { id: 1, name: '小试牛刀', difficulty: '简单', monster: '👹', boss: false, questions: 5 },
-        { id: 2, name: '魔法初现', difficulty: '中等', monster: '👺', boss: false, questions: 7 },
-        { id: 3, name: '怪物来袭', difficulty: '困难', monster: '🤖', boss: false, questions: 10 },
-        { id: 4, name: '最终Boss', difficulty: 'Boss', monster: '👿', boss: true, questions: 12 }
-    ],
-    questions: {
-        choice: [
-            { question: 'I love reading books.', options: ['我喜欢读书。', '我喜欢看电视。', '我喜欢玩游戏。', '我喜欢画画。'], answer: 0 },
-            { question: 'Matilda is very smart.', options: ['玛蒂尔达很可爱。', '玛蒂尔达很聪明。', '玛蒂尔达很调皮。', '玛蒂尔达很害羞。'], answer: 1 },
-            { question: 'The teacher is kind.', options: ['老师很严厉。', '老师很和蔼。', '老师很年轻。', '老师很漂亮。'], answer: 1 },
-            { question: 'She has special powers.', options: ['她有特殊能力。', '她有很多朋友。', '她有很多玩具。', '她有很多书。'], answer: 0 },
-            { question: 'Knowledge is power.', options: ['知识就是力量。', '时间就是金钱。', '团结就是力量。', '实践出真知。'], answer: 0 },
-            { question: 'Reading opens doors.', options: ['读书使人快乐。', '阅读开启大门。', '书中自有黄金屋。', '读万卷书行万里路。'], answer: 1 },
-            { question: 'Magic is everywhere.', options: ['魔法在远方。', '魔法无处不在。', '魔法很神奇。', '魔法很危险。'], answer: 1 },
-            { question: 'Brave girls can do anything.', options: ['勇敢的女孩无所不能。', '漂亮的女孩很可爱。', '聪明的女孩爱学习。', '快乐的女孩爱唱歌。'], answer: 0 }
-        ],
-        spelling: [
-            { sentence: 'The ______ is very smart.', word: 'girl', hint: '一个小女孩的英文' },
-            { sentence: 'I love reading ______.', word: 'books', hint: '读书的英文' },
-            { sentence: 'Matilda has special ______.', word: 'powers', hint: '能力的复数形式' },
-            { sentence: 'The ______ is kind.', word: 'teacher', hint: '老师的英文' },
-            { sentence: 'Knowledge is ______.', word: 'power', hint: '力量的英文' },
-            { sentence: 'She is very ______.', word: 'clever', hint: '聪明的英文' },
-            { sentence: 'Reading ______ minds.', word: 'opens', hint: '开启的第三人称单数' },
-            { sentence: 'Magic is ______.', word: 'wonderful', hint: '精彩的英文' }
-        ],
-        matching: [
-            { pairs: [
-                { left: 'I love reading', right: '我喜欢阅读' },
-                { left: 'special powers', right: '特殊能力' },
-                { left: 'kind teacher', right: '和蔼的老师' },
-                { left: 'very smart', right: '非常聪明' }
-            ]},
-            { pairs: [
-                { left: 'Magic book', right: '魔法书' },
-                { left: 'Brave girl', right: '勇敢的女孩' },
-                { left: 'Knowledge', right: '知识' },
-                { left: 'Power', right: '力量' }
-            ]},
-            { pairs: [
-                { left: 'Open the door', right: '开门' },
-                { left: 'Read a book', right: '读书' },
-                { left: 'Learn magic', right: '学习魔法' },
-                { left: 'Help friends', right: '帮助朋友' }
-            ]}
-        ],
-        speaking: [
-            { sentence: 'I love reading books.', prompt: '请跟读这句话' },
-            { sentence: 'Matilda is very smart.', prompt: '请跟读这句话' },
-            { sentence: 'The teacher is kind.', prompt: '请跟读这句话' },
-            { sentence: 'She has special powers.', prompt: '请跟读这句话' },
-            { sentence: 'Knowledge is power.', prompt: '请跟读这句话' }
-        ]
-    },
-    songs: [
-        { id: 1, name: 'Revolting Children', duration: 180 },
-        { id: 2, name: 'When I Grow Up', duration: 240 },
-        { id: 3, name: 'Miracle', duration: 200 },
-        { id: 4, name: 'School Song', duration: 160 }
-    ]
-};
+// 玛蒂尔达的魔法书 - 游戏主逻辑
 
-class Game {
+class MatildaGame {
     constructor() {
         this.currentLevel = 1;
         this.playerHealth = 100;
         this.monsterHealth = 100;
-        this.gold = 0;
-        this.attackPower = 10;
-        this.defense = 5;
-        this.currentQuestionIndex = 0;
-        this.currentQuestionType = 'choice';
-        this.score = 0;
-        this.matchingPairs = [];
-        this.matchedCount = 0;
-        this.freezeActive = false;
-        this.freezeCount = 1;
-        this.skipCount = 1;
-        this.hintCount = 1;
-        this.totalDamageDealt = 0;
+        this.coins = 0;
+        this.currentQuestion = 0;
+        this.questions = [];
+        this.timer = null;
+        this.timeLeft = 30;
+        this.items = {
+            freeze: 3,
+            skip: 2,
+            remove: 2
+        };
+        this.unlockedLevels = [1];
+        this.completedLevels = [];
         
         this.init();
     }
 
     init() {
         this.bindEvents();
-        this.loadGameState();
+        this.loadLevelSelect();
+        this.updateStatusBar();
     }
 
     bindEvents() {
-        document.getElementById('openBookBtn').addEventListener('click', () => this.openBook());
-        document.getElementById('backBtn').addEventListener('click', () => this.backToBook());
-        document.getElementById('openShopBtn').addEventListener('click', () => this.openShop());
-        document.getElementById('closeShopBtn').addEventListener('click', () => this.closeShop());
-        document.getElementById('continueBtn').addEventListener('click', () => this.continueGame());
-        document.getElementById('retryBtn').addEventListener('click', () => this.retryLevel());
-        document.getElementById('skipSongBtn').addEventListener('click', () => this.skipSong());
-        document.getElementById('freezeBtn').addEventListener('click', () => this.useFreeze());
-        document.getElementById('skipQuestionBtn').addEventListener('click', () => this.useSkip());
-        document.getElementById('hintBtn').addEventListener('click', () => this.useHint());
-        document.getElementById('speakBtn').addEventListener('click', () => this.startSpeaking());
-        document.getElementById('playBtn').addEventListener('click', () => this.playSentence());
-        
-        document.querySelectorAll('.level-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const level = parseInt(card.dataset.level);
-                const status = card.querySelector('.level-status');
-                if (status.classList.contains('completed') || level === this.getNextUnlockedLevel()) {
-                    this.startLevel(level);
-                }
-            });
+        // 开始按钮
+        document.getElementById('start-btn').addEventListener('click', () => {
+            this.showScreen('level-select');
         });
-        
-        document.querySelectorAll('.shop-buy-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const item = btn.dataset.item;
-                this.buyItem(item);
-            });
+
+        // 返回按钮
+        document.getElementById('back-btn').addEventListener('click', () => {
+            this.showScreen('start-screen');
+        });
+
+        document.getElementById('game-back-btn').addEventListener('click', () => {
+            this.confirmQuit();
+        });
+
+        // 道具按钮
+        document.getElementById('freeze-time').addEventListener('click', () => {
+            this.useItem('freeze');
+        });
+
+        document.getElementById('skip-question').addEventListener('click', () => {
+            this.useItem('skip');
+        });
+
+        document.getElementById('remove-wrong').addEventListener('click', () => {
+            this.useItem('remove');
+        });
+
+        // 结果画面按钮
+        document.getElementById('next-level-btn').addEventListener('click', () => {
+            this.nextLevel();
+        });
+
+        document.getElementById('retry-btn').addEventListener('click', () => {
+            this.retryLevel();
+        });
+
+        document.getElementById('home-btn').addEventListener('click', () => {
+            this.showScreen('start-screen');
         });
     }
 
-    loadGameState() {
-        const saved = localStorage.getItem('matilda_game');
-        if (saved) {
-            const state = JSON.parse(saved);
-            this.gold = state.gold || 0;
-            this.attackPower = state.attackPower || 10;
-            this.defense = state.defense || 5;
-            this.freezeCount = state.freezeCount || 1;
-            this.skipCount = state.skipCount || 1;
-            this.hintCount = state.hintCount || 1;
-            this.updateGoldDisplay();
-            this.updateEquipmentDisplay();
-            this.updatePowerUpButtons();
-        }
+    showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        document.getElementById(screenId).classList.add('active');
     }
 
-    saveGameState() {
-        const state = {
-            gold: this.gold,
-            attackPower: this.attackPower,
-            defense: this.defense,
-            freezeCount: this.freezeCount,
-            skipCount: this.skipCount,
-            hintCount: this.hintCount
-        };
-        localStorage.setItem('matilda_game', JSON.stringify(state));
+    loadLevelSelect() {
+        const container = document.getElementById('levels-container');
+        container.innerHTML = '';
+
+        GAME_DATA.levels.forEach(level => {
+            const levelCard = document.createElement('div');
+            levelCard.className = 'level-card';
+            
+            if (this.completedLevels.includes(level.id)) {
+                levelCard.classList.add('completed');
+            } else if (this.unlockedLevels.includes(level.id)) {
+                levelCard.classList.add('current');
+            } else {
+                levelCard.classList.add('locked');
+            }
+
+            levelCard.innerHTML = `
+                <div class="level-number">${level.id}</div>
+                <div class="level-name">${level.name}</div>
+                <div class="level-song">🎵 ${level.song}</div>
+            `;
+
+            if (this.unlockedLevels.includes(level.id)) {
+                levelCard.addEventListener('click', () => {
+                    this.startLevel(level.id);
+                });
+            }
+
+            container.appendChild(levelCard);
+        });
     }
 
-    openBook() {
-        document.querySelector('.book-cover').style.display = 'none';
-        document.getElementById('bookPages').style.display = 'flex';
-    }
-
-    backToBook() {
-        document.getElementById('gameScreen').style.display = 'none';
-        document.getElementById('magicBook').style.display = 'block';
-    }
-
-    startLevel(level) {
-        this.currentLevel = level;
-        const levelData = GAME_DATA.levels[level - 1];
-        this.monsterHealth = levelData.boss ? 200 : 100;
-        this.playerHealth = 100;
-        this.currentQuestionIndex = 0;
-        this.score = 0;
-        this.totalDamageDealt = 0;
+    startLevel(levelId) {
+        this.currentLevel = levelId;
+        const levelData = GAME_DATA.levels.find(l => l.id === levelId);
+        this.questions = [...levelData.questions];
+        this.currentQuestion = 0;
         
-        document.getElementById('magicBook').style.display = 'none';
-        document.getElementById('gameScreen').style.display = 'flex';
+        // 设置怪物
+        const monsterIndex = (levelId - 1) % GAME_DATA.monsters.length;
+        const monster = GAME_DATA.monsters[monsterIndex];
+        document.getElementById('monster').textContent = monster.emoji;
         
-        document.getElementById('gameTitle').textContent = `关卡 ${level} - ${levelData.name}`;
-        document.getElementById('monsterEmoji').textContent = levelData.monster;
-        document.getElementById('monsterName').textContent = levelData.boss ? 'Boss怪物' : '怪物';
-        
+        // 重置血量
+        this.playerHealth = GAME_DATA.gameConfig.playerHealth;
+        this.monsterHealth = GAME_DATA.gameConfig.monsterHealth;
         this.updateHealthBars();
-        this.playSong();
-        this.showNextQuestion();
-    }
-
-    playSong() {
-        const songIndex = (this.currentLevel - 1) % GAME_DATA.songs.length;
-        const song = GAME_DATA.songs[songIndex];
-        document.getElementById('songInfo').textContent = `🎵 ${song.name}`;
         
-        setTimeout(() => {
-            this.showNextQuestion();
-        }, 2000);
+        this.showScreen('game-screen');
+        this.showQuestion();
+        this.updateStatusBar();
     }
 
-    skipSong() {
-        this.showNextQuestion();
-    }
-
-    showNextQuestion() {
-        if (this.currentQuestionIndex >= GAME_DATA.levels[this.currentLevel - 1].questions) {
+    showQuestion() {
+        if (this.currentQuestion >= this.questions.length) {
             this.levelComplete();
             return;
         }
+
+        const question = this.questions[this.currentQuestion];
+        const questionArea = document.getElementById('question-area');
         
-        const types = ['choice', 'spelling', 'matching', 'speaking'];
-        this.currentQuestionType = types[this.currentQuestionIndex % types.length];
+        // 设置题目文本
+        document.getElementById('question-text').textContent = question.question || question.context;
+        document.getElementById('question-type').textContent = this.getQuestionTypeText(question.type);
         
-        document.getElementById('questionArea').style.display = 'none';
-        document.getElementById('spellingArea').style.display = 'none';
-        document.getElementById('matchingArea').style.display = 'none';
-        document.getElementById('speakingArea').style.display = 'none';
+        // 清空答题区
+        document.getElementById('answer-area').innerHTML = '';
         
-        switch (this.currentQuestionType) {
-            case 'choice':
-                this.showChoiceQuestion();
+        // 根据题型渲染不同界面
+        switch(question.type) {
+            case 'multiple_choice':
+                this.renderMultipleChoice(question);
                 break;
             case 'spelling':
-                this.showSpellingQuestion();
+                this.renderSpelling(question);
                 break;
             case 'matching':
-                this.showMatchingQuestion();
+                this.renderMatching(question);
                 break;
-            case 'speaking':
-                this.showSpeakingQuestion();
+            case 'read_along':
+                this.renderReadAlong(question);
                 break;
         }
+
+        // 播放音频提示（如果有）
+        if (question.audioText) {
+            this.playAudioText(question.audioText);
+        }
+
+        // 启动计时器
+        this.startTimer();
     }
 
-    showChoiceQuestion() {
-        const questions = GAME_DATA.questions.choice;
-        const question = questions[this.currentQuestionIndex % questions.length];
-        
-        document.getElementById('questionArea').style.display = 'block';
-        document.getElementById('questionType').textContent = '选择题';
-        document.getElementById('questionText').textContent = question.question;
-        
-        const optionsContainer = document.getElementById('questionOptions');
-        optionsContainer.innerHTML = '';
-        
+    getQuestionTypeText(type) {
+        const typeNames = {
+            'multiple_choice': '选择题',
+            'spelling': '拼写题',
+            'matching': '连线题',
+            'read_along': '跟读题'
+        };
+        return typeNames[type] || type;
+    }
+
+    renderMultipleChoice(question) {
+        const container = document.createElement('div');
+        container.className = 'options-grid';
+
         question.options.forEach((option, index) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
-            btn.textContent = option;
-            btn.dataset.index = index;
-            btn.addEventListener('click', () => this.checkChoiceAnswer(index));
-            optionsContainer.appendChild(btn);
+            btn.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+            btn.addEventListener('click', () => {
+                this.checkAnswer(index === question.correct, btn);
+            });
+            container.appendChild(btn);
         });
-        
-        document.getElementById('questionFeedback').style.display = 'none';
+
+        document.getElementById('answer-area').appendChild(container);
     }
 
-    checkChoiceAnswer(index) {
-        const questions = GAME_DATA.questions.choice;
-        const question = questions[this.currentQuestionIndex % questions.length];
-        const feedback = document.getElementById('questionFeedback');
+    renderSpelling(question) {
+        const container = document.createElement('div');
+        container.className = 'spelling-container';
+
+        // 创建填空槽
+        const slotsArea = document.createElement('div');
+        slotsArea.className = 'spelling-area';
         
-        document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
+        const wordLength = question.word.length;
+        const slots = [];
         
-        if (index === question.answer) {
-            feedback.textContent = '🎉 答对了！玛蒂尔达发动攻击！';
-            feedback.className = 'question-feedback correct';
-            this.attackMonster();
-        } else {
-            feedback.textContent = '😢 答错了！自己掉血了！';
-            feedback.className = 'question-feedback wrong';
-            this.playerDamage();
+        for (let i = 0; i < wordLength; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'letter-slot';
+            slot.dataset.index = i;
+            slots.push(slot);
+            slotsArea.appendChild(slot);
         }
         
-        feedback.style.display = 'block';
-        
-        setTimeout(() => {
-            this.currentQuestionIndex++;
-            this.showNextQuestion();
-        }, 1500);
-    }
+        container.appendChild(slotsArea);
 
-    showSpellingQuestion() {
-        const questions = GAME_DATA.questions.spelling;
-        const question = questions[this.currentQuestionIndex % questions.length];
+        // 创建字母池
+        const poolArea = document.createElement('div');
+        poolArea.className = 'letter-pool';
         
-        document.getElementById('spellingArea').style.display = 'block';
-        document.getElementById('spellingHint').textContent = question.hint;
-        document.getElementById('spellingSentence').textContent = question.sentence;
+        // 打乱字母顺序
+        const shuffledLetters = [...question.letters].sort(() => Math.random() - 0.5);
         
-        const letters = question.word.split('');
-        this.shuffleArray(letters);
-        
-        const dragArea = document.getElementById('spellingDragArea');
-        dragArea.innerHTML = '';
-        
-        letters.forEach((letter, index) => {
+        shuffledLetters.forEach((letter, index) => {
             const tile = document.createElement('div');
             tile.className = 'letter-tile';
             tile.textContent = letter.toUpperCase();
-            tile.draggable = true;
-            tile.dataset.index = index;
-            tile.addEventListener('dragstart', (e) => this.dragStart(e));
-            tile.addEventListener('dragend', (e) => this.dragEnd(e));
-            dragArea.appendChild(tile);
+            tile.dataset.letter = letter;
+            
+            tile.addEventListener('click', () => {
+                this.handleLetterClick(tile, slots);
+            });
+            
+            poolArea.appendChild(tile);
         });
         
-        const dropArea = document.getElementById('spellingDropArea');
-        dropArea.innerHTML = '';
-        
-        for (let i = 0; i < question.word.length; i++) {
-            const slot = document.createElement('div');
-            slot.className = 'drop-slot';
-            slot.dataset.position = i;
-            slot.addEventListener('dragover', (e) => this.dragOver(e));
-            slot.addEventListener('dragleave', (e) => this.dragLeave(e));
-            slot.addEventListener('drop', (e) => this.drop(e));
-            dropArea.appendChild(slot);
-        }
-    }
+        container.appendChild(poolArea);
 
-    dragStart(e) {
-        e.dataTransfer.setData('text/plain', e.target.textContent);
-        e.target.classList.add('dragging');
-    }
-
-    dragEnd(e) {
-        e.target.classList.remove('dragging');
-    }
-
-    dragOver(e) {
-        e.preventDefault();
-        e.target.classList.add('drag-over');
-    }
-
-    dragLeave(e) {
-        e.target.classList.remove('drag-over');
-    }
-
-    drop(e) {
-        e.preventDefault();
-        e.target.classList.remove('drag-over');
-        
-        const letter = e.dataTransfer.getData('text/plain');
-        e.target.textContent = letter;
-        e.target.classList.add('filled');
-        
-        this.checkSpellingAnswer();
-    }
-
-    checkSpellingAnswer() {
-        const slots = document.querySelectorAll('.drop-slot');
-        const answer = Array.from(slots).map(slot => slot.textContent).join('');
-        
-        const questions = GAME_DATA.questions.spelling;
-        const question = questions[this.currentQuestionIndex % questions.length];
-        
-        if (answer.toLowerCase() === question.word.toLowerCase() && answer.length === question.word.length) {
-            setTimeout(() => {
-                this.showSpellingFeedback(true);
-            }, 500);
-        }
-    }
-
-    showSpellingFeedback(correct) {
-        const feedback = document.createElement('div');
-        feedback.className = `question-feedback ${correct ? 'correct' : 'wrong'}`;
-        feedback.textContent = correct ? '🎉 拼写正确！玛蒂尔达发动攻击！' : '😢 拼写错误！自己掉血了！';
-        document.getElementById('spellingArea').appendChild(feedback);
-        
-        if (correct) {
-            this.attackMonster();
-        } else {
-            this.playerDamage();
-        }
-        
-        setTimeout(() => {
-            this.currentQuestionIndex++;
-            this.showNextQuestion();
-        }, 1500);
-    }
-
-    showMatchingQuestion() {
-        const questions = GAME_DATA.questions.matching;
-        const question = questions[this.currentQuestionIndex % questions.length];
-        
-        document.getElementById('matchingArea').style.display = 'block';
-        
-        this.matchingPairs = question.pairs;
-        this.matchedCount = 0;
-        
-        const leftItems = [...this.matchingPairs.map(p => p.left)];
-        const rightItems = [...this.matchingPairs.map(p => p.right)];
-        
-        this.shuffleArray(leftItems);
-        this.shuffleArray(rightItems);
-        
-        const leftContainer = document.getElementById('matchingLeft');
-        const rightContainer = document.getElementById('matchingRight');
-        
-        leftContainer.innerHTML = '';
-        rightContainer.innerHTML = '';
-        
-        leftItems.forEach((item, index) => {
-            const div = document.createElement('div');
-            div.className = 'matching-item';
-            div.textContent = item;
-            div.dataset.side = 'left';
-            div.dataset.index = index;
-            div.addEventListener('click', () => this.selectMatchingItem(div, 'left', index));
-            leftContainer.appendChild(div);
+        // 提交按钮
+        const submitBtn = document.createElement('button');
+        submitBtn.className = 'btn btn-primary';
+        submitBtn.textContent = '提交答案';
+        submitBtn.style.marginTop = '20px';
+        submitBtn.addEventListener('click', () => {
+            this.checkSpellingAnswer(slots, question.word);
         });
         
-        rightItems.forEach((item, index) => {
-            const div = document.createElement('div');
-            div.className = 'matching-item';
-            div.textContent = item;
-            div.dataset.side = 'right';
-            div.dataset.index = index;
-            div.addEventListener('click', () => this.selectMatchingItem(div, 'right', index));
-            rightContainer.appendChild(div);
-        });
-        
-        this.selectedLeft = null;
-        this.selectedRight = null;
+        container.appendChild(submitBtn);
+        document.getElementById('answer-area').appendChild(container);
     }
 
-    selectMatchingItem(element, side, index) {
-        if (element.classList.contains('matched')) return;
+    handleLetterClick(tile, slots) {
+        if (tile.classList.contains('used')) return;
+
+        // 找到第一个空的槽
+        const emptySlot = slots.find(slot => !slot.textContent);
+        if (emptySlot) {
+            emptySlot.textContent = tile.textContent;
+            emptySlot.dataset.letter = tile.dataset.letter;
+            emptySlot.classList.add('filled');
+            tile.classList.add('used');
+        }
+    }
+
+    checkSpellingAnswer(slots, correctWord) {
+        const answer = slots.map(slot => slot.dataset.letter || '').join('').toLowerCase();
+        const isCorrect = answer === correctWord.toLowerCase();
         
-        if (side === 'left') {
-            if (this.selectedLeft) {
-                this.selectedLeft.classList.remove('selected');
-            }
-            this.selectedLeft = element;
-            this.selectedLeftIndex = index;
-            element.classList.add('selected');
+        if (isCorrect) {
+            slots.forEach(slot => slot.style.borderColor = '#00b894');
         } else {
-            if (this.selectedRight) {
-                this.selectedRight.classList.remove('selected');
-            }
-            this.selectedRight = element;
-            this.selectedRightIndex = index;
-            element.classList.add('selected');
-        }
-        
-        if (this.selectedLeft && this.selectedRight) {
-            this.checkMatchingAnswer();
-        }
-    }
-
-    checkMatchingAnswer() {
-        const leftText = this.selectedLeft.textContent;
-        const rightText = this.selectedRight.textContent;
-        
-        const correctMatch = this.matchingPairs.some(pair => pair.left === leftText && pair.right === rightText);
-        
-        if (correctMatch) {
-            this.selectedLeft.classList.add('matched');
-            this.selectedRight.classList.add('matched');
-            this.selectedLeft.classList.remove('selected');
-            this.selectedRight.classList.remove('selected');
-            this.matchedCount++;
-            
-            if (this.matchedCount === this.matchingPairs.length) {
-                setTimeout(() => {
-                    this.showMatchingFeedback(true);
-                }, 500);
-            }
-        } else {
-            setTimeout(() => {
-                this.selectedLeft.classList.remove('selected');
-                this.selectedRight.classList.remove('selected');
-                this.selectedLeft = null;
-                this.selectedRight = null;
-            }, 500);
-        }
-        
-        this.selectedLeft = null;
-        this.selectedRight = null;
-    }
-
-    showMatchingFeedback(correct) {
-        const feedback = document.createElement('div');
-        feedback.className = `question-feedback ${correct ? 'correct' : 'wrong'}`;
-        feedback.textContent = correct ? '🎉 全部连对了！玛蒂尔达发动攻击！' : '😢 连线错误！';
-        document.getElementById('matchingArea').appendChild(feedback);
-        
-        if (correct) {
-            this.attackMonster();
+            slots.forEach(slot => slot.style.borderColor = '#e74c3c');
         }
         
         setTimeout(() => {
-            this.currentQuestionIndex++;
-            this.showNextQuestion();
-        }, 1500);
-    }
-
-    showSpeakingQuestion() {
-        const questions = GAME_DATA.questions.speaking;
-        const question = questions[this.currentQuestionIndex % questions.length];
-        
-        document.getElementById('speakingArea').style.display = 'block';
-        document.getElementById('speakingSentence').textContent = `"${question.sentence}"`;
-        document.getElementById('speakingScore').textContent = '';
-    }
-
-    playSentence() {
-        const text = document.getElementById('speakingSentence').textContent.replace(/"/g, '');
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        speechSynthesis.speak(utterance);
-    }
-
-    startSpeaking() {
-        const btn = document.getElementById('speakBtn');
-        btn.textContent = '🎤 录音中...';
-        
-        setTimeout(() => {
-            const score = Math.floor(Math.random() * 30) + 70;
-            document.getElementById('speakingScore').textContent = `发音得分: ${score}分`;
-            
-            if (score >= 80) {
-                document.getElementById('speakingScore').style.color = '#4caf50';
-                this.attackMonster();
-            } else {
-                document.getElementById('speakingScore').style.color = '#ff6b6b';
-                this.playerDamage();
-            }
-            
-            btn.textContent = '🎤 开始录音';
-            
-            setTimeout(() => {
-                this.currentQuestionIndex++;
-                this.showNextQuestion();
-            }, 1500);
-        }, 3000);
-    }
-
-    attackMonster() {
-        const damage = this.attackPower + Math.floor(Math.random() * 10);
-        this.monsterHealth -= damage;
-        this.totalDamageDealt += damage;
-        
-        this.showAttackEffect();
-        this.showDamageNumber(damage);
-        
-        const monsterEmoji = document.getElementById('monsterEmoji');
-        monsterEmoji.classList.add('hurt');
-        setTimeout(() => monsterEmoji.classList.remove('hurt'), 300);
-        
-        this.updateHealthBars();
-        
-        if (this.monsterHealth <= 0) {
-            this.monsterHealth = 0;
-            this.updateHealthBars();
-            this.levelComplete();
-        }
-    }
-
-    playerDamage() {
-        const damage = Math.max(5, 15 - this.defense);
-        this.playerHealth -= damage;
-        
-        this.updateHealthBars();
-        
-        if (this.playerHealth <= 0) {
-            this.playerHealth = 0;
-            this.updateHealthBars();
-            this.gameOver();
-        }
-    }
-
-    showAttackEffect() {
-        const effect = document.getElementById('attackEffect');
-        effect.textContent = '✨💫';
-        effect.style.display = 'block';
-        
-        setTimeout(() => {
-            effect.style.display = 'none';
+            this.checkAnswer(isCorrect);
         }, 500);
     }
 
-    showDamageNumber(damage) {
-        const number = document.getElementById('damageNumber');
-        number.textContent = `-${damage}`;
-        number.style.left = '60%';
-        number.style.top = '30%';
-        number.style.display = 'block';
+    renderMatching(question) {
+        const container = document.createElement('div');
+        container.className = 'matching-area';
+
+        // 左侧（英文）
+        const leftCol = document.createElement('div');
+        leftCol.className = 'match-column';
+        question.left.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'match-item';
+            div.textContent = item;
+            div.dataset.index = index;
+            div.dataset.side = 'left';
+            div.addEventListener('click', () => this.handleMatchClick(div));
+            leftCol.appendChild(div);
+        });
+
+        // 右侧（中文）
+        const rightCol = document.createElement('div');
+        rightCol.className = 'match-column';
+        question.right.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'match-item';
+            div.textContent = item;
+            div.dataset.index = index;
+            div.dataset.side = 'right';
+            div.addEventListener('click', () => this.handleMatchClick(div));
+            rightCol.appendChild(div);
+        });
+
+        container.appendChild(leftCol);
+        container.appendChild(rightCol);
+
+        // 确认按钮
+        const submitBtn = document.createElement('button');
+        submitBtn.className = 'btn btn-primary';
+        submitBtn.textContent = '确认连线';
+        submitBtn.style.marginTop = '20px';
+        submitBtn.style.gridColumn = '1 / -1';
+        submitBtn.addEventListener('click', () => {
+            this.checkMatchingAnswer(question.correctPairs);
+        });
+
+        const wrapper = document.createElement('div');
+        wrapper.appendChild(container);
+        wrapper.appendChild(submitBtn);
+        
+        document.getElementById('answer-area').appendChild(wrapper);
+
+        this.selectedMatch = null;
+        this.currentMatches = [];
+    }
+
+    handleMatchClick(item) {
+        if (item.classList.contains('matched')) return;
+
+        if (!this.selectedMatch) {
+            this.selectedMatch = item;
+            item.classList.add('selected');
+        } else {
+            if (this.selectedMatch.dataset.side !== item.dataset.side) {
+                // 配对成功
+                const leftIndex = this.selectedMatch.dataset.side === 'left' ? 
+                    parseInt(this.selectedMatch.dataset.index) : parseInt(item.dataset.index);
+                const rightIndex = this.selectedMatch.dataset.side === 'right' ? 
+                    parseInt(this.selectedMatch.dataset.index) : parseInt(item.dataset.index);
+
+                this.currentMatches.push([leftIndex, rightIndex]);
+                this.selectedMatch.classList.add('matched');
+                item.classList.add('matched');
+            }
+            
+            this.selectedMatch.classList.remove('selected');
+            this.selectedMatch = null;
+        }
+    }
+
+    checkMatchingAnswer(correctPairs) {
+        let correctCount = 0;
+        this.currentMatches.forEach(match => {
+            if (correctPairs.some(pair => 
+                pair[0] === match[0] && pair[1] === match[1]
+            )) {
+                correctCount++;
+            }
+        });
+
+        const isCorrect = correctCount >= correctPairs.length;
+        this.checkAnswer(isCorrect);
+    }
+
+    renderReadAlong(question) {
+        const container = document.createElement('div');
+        container.className = 'read-along-area';
+
+        // 原文
+        const textDiv = document.createElement('div');
+        textDiv.className = 'read-text';
+        textDiv.style.cssText = 'font-size: 1.5em; margin-bottom: 15px; line-height: 1.6; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px;';
+        textDiv.innerHTML = `"${question.text}"`;
+        container.appendChild(textDiv);
+
+        // 翻译
+        const transDiv = document.createElement('div');
+        transDiv.className = 'translation';
+        transDiv.style.cssText = 'color: #fd79a8; margin-bottom: 30px;';
+        transDiv.textContent = question.translation;
+        container.appendChild(transDiv);
+
+        // 录音按钮
+        const micBtn = document.createElement('button');
+        micBtn.className = 'mic-btn';
+        micBtn.textContent = '🎤';
+        micBtn.title = '按住说话';
+        
+        let recording = false;
+        micBtn.addEventListener('mousedown', () => {
+            recording = true;
+            micBtn.classList.add('recording');
+            this.startRecording();
+        });
+
+        micBtn.addEventListener('mouseup', () => {
+            if (recording) {
+                recording = false;
+                micBtn.classList.remove('recording');
+                this.stopRecording(question);
+            }
+        });
+
+        // 触摸设备支持
+        micBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            recording = true;
+            micBtn.classList.add('recording');
+            this.startRecording();
+        });
+
+        micBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (recording) {
+                recording = false;
+                micBtn.classList.remove('recording');
+                this.stopRecording(question);
+            }
+        });
+
+        container.appendChild(micBtn);
+
+        // 提示文字
+        const hint = document.createElement('p');
+        hint.textContent = '按住麦克风跟读，然后松开';
+        hint.style.cssText = 'color: #636e72;';
+        container.appendChild(hint);
+
+        document.getElementById('answer-area').appendChild(container);
+    }
+
+    startRecording() {
+        // 模拟录音开始
+        console.log('Recording started...');
+    }
+
+    stopRecording(question) {
+        // 模拟语音识别和评分
+        console.log('Recording stopped...');
+        
+        // 模拟评分（随机成功率，根据难度调整）
+        const difficulties = { 'easy': 0.8, 'medium': 0.6, 'hard': 0.4 };
+        const successRate = difficulties[question.difficulty] || 0.6;
+        const isCorrect = Math.random() < successRate;
         
         setTimeout(() => {
-            number.style.display = 'none';
+            this.checkAnswer(isCorrect);
         }, 1000);
     }
 
-    updateHealthBars() {
-        const playerHealth = document.getElementById('playerHealth');
-        const playerText = document.getElementById('playerHealthText');
-        const monsterHealth = document.getElementById('monsterHealth');
-        const monsterText = document.getElementById('monsterHealthText');
-        
-        playerHealth.style.width = `${this.playerHealth}%`;
-        playerText.textContent = `${this.playerHealth}/100`;
-        
-        const maxMonsterHealth = GAME_DATA.levels[this.currentLevel - 1].boss ? 200 : 100;
-        monsterHealth.style.width = `${(this.monsterHealth / maxMonsterHealth) * 100}%`;
-        monsterText.textContent = `${this.monsterHealth}/${maxMonsterHealth}`;
+    startTimer() {
+        this.timeLeft = GAME_DATA.gameConfig.timeLimit;
+        this.updateTimerDisplay();
+
+        this.timer = setInterval(() => {
+            this.timeLeft--;
+            this.updateTimerDisplay();
+
+            if (this.timeLeft <= 0) {
+                clearInterval(this.timer);
+                this.checkAnswer(false);
+            }
+        }, 1000);
     }
 
-    updateGoldDisplay() {
-        document.getElementById('goldAmount').textContent = this.gold;
+    updateTimerDisplay() {
+        // 可以在界面上显示倒计时
+        const progress = (this.timeLeft / GAME_DATA.gameConfig.timeLimit) * 100;
+        document.getElementById('audio-progress').style.width = progress + '%';
     }
 
-    updateEquipmentDisplay() {
-        document.querySelector('#weapon .equip-level').textContent = `Lv.${Math.floor(this.attackPower / 10)}`;
-        document.querySelector('#weapon .equip-stat').textContent = `攻击力 +${this.attackPower}`;
-        document.querySelector('#armor .equip-level').textContent = `Lv.${Math.floor(this.defense / 5)}`;
-        document.querySelector('#armor .equip-stat').textContent = `防御力 +${this.defense}`;
-    }
+    checkAnswer(isCorrect, element = null) {
+        clearInterval(this.timer);
 
-    updatePowerUpButtons() {
-        document.getElementById('freezeBtn').disabled = this.freezeCount <= 0;
-        document.getElementById('skipQuestionBtn').disabled = this.skipCount <= 0;
-        document.getElementById('hintBtn').disabled = this.hintCount <= 0;
-    }
+        if (element) {
+            element.classList.add(isCorrect ? 'correct' : 'wrong');
+        }
 
-    useFreeze() {
-        if (this.freezeCount <= 0) return;
-        
-        this.freezeCount--;
-        this.freezeActive = true;
-        this.updatePowerUpButtons();
-        
         setTimeout(() => {
-            this.freezeActive = false;
-        }, 3000);
+            if (isCorrect) {
+                this.playerAttack();
+            } else {
+                this.monsterAttack();
+            }
+        }, 800);
     }
 
-    useSkip() {
-        if (this.skipCount <= 0) return;
-        
-        this.skipCount--;
-        this.updatePowerUpButtons();
-        this.currentQuestionIndex++;
-        this.showNextQuestion();
+    playerAttack() {
+        const damage = GAME_DATA.gameConfig.damagePerHit;
+        this.monsterHealth -= damage;
+        this.updateHealthBars();
+
+        // 播放攻击动画
+        const matilda = document.getElementById('matilda');
+        matilda.classList.add('attack');
+        setTimeout(() => matilda.classList.remove('attack'), 500);
+
+        // 播放击中动画
+        const monster = document.getElementById('monster');
+        monster.classList.add('hit');
+        setTimeout(() => monster.classList.remove('hit'), 300);
+
+        // 显示伤害数字
+        this.showEffect(monster, `-${damage}`, 'damage-number');
+
+        // 检查怪物是否被击败
+        if (this.monsterHealth <= 0) {
+            setTimeout(() => {
+                this.questionComplete(true);
+            }, 500);
+        } else {
+            setTimeout(() => {
+                this.currentQuestion++;
+                this.showQuestion();
+            }, 1000);
+        }
     }
 
-    useHint() {
-        if (this.hintCount <= 0) return;
+    monsterAttack() {
+        const damage = GAME_DATA.gameConfig.damagePerHit;
+        this.playerHealth -= damage;
+        this.updateHealthBars();
+
+        // 怪物攻击动画
+        const monster = document.getElementById('monster');
+        monster.style.transform = 'translateX(-30px)';
+        setTimeout(() => {
+            monster.style.transform = 'translateX(0)';
+        }, 300);
+
+        // 玛蒂尔达受击动画
+        const matilda = document.getElementById('matilda');
+        matilda.classList.add('hit');
+        setTimeout(() => matilda.classList.remove('hit'), 300);
+
+        // 显示伤害数字
+        this.showEffect(matilda, `-${damage}`, 'damage-number');
+
+        // 检查玩家是否失败
+        if (this.playerHealth <= 0) {
+            setTimeout(() => {
+                this.levelFailed();
+            }, 500);
+        } else {
+            setTimeout(() => {
+                this.currentQuestion++;
+                this.showQuestion();
+            }, 1000);
+        }
+    }
+
+    showEffect(element, text, className) {
+        const effect = document.createElement('div');
+        effect.className = `effect ${className}`;
+        effect.textContent = text;
         
-        this.hintCount--;
-        this.updatePowerUpButtons();
+        const rect = element.getBoundingClientRect();
+        effect.style.left = rect.left + rect.width / 2 + 'px';
+        effect.style.top = rect.top + 'px';
         
-        if (this.currentQuestionType === 'choice') {
-            const options = document.querySelectorAll('.option-btn');
-            const questions = GAME_DATA.questions.choice;
-            const question = questions[this.currentQuestionIndex % questions.length];
-            
-            options.forEach((opt, index) => {
-                if (index !== question.answer && Math.random() > 0.5) {
-                    opt.style.opacity = '0.3';
-                }
-            });
+        document.getElementById('effects-layer').appendChild(effect);
+        
+        setTimeout(() => effect.remove(), 1000);
+    }
+
+    updateHealthBars() {
+        const playerPercent = Math.max(0, this.playerHealth);
+        const monsterPercent = Math.max(0, this.monsterHealth);
+        
+        document.getElementById('player-health').style.width = playerPercent + '%';
+        document.getElementById('monster-health').style.width = monsterPercent + '%';
+    }
+
+    updateStatusBar() {
+        document.getElementById('coin-count').textContent = this.coins;
+        document.getElementById('current-level').textContent = this.currentLevel;
+        
+        // 更新道具数量
+        document.getElementById('freeze-time').textContent = `❄️ ${this.items.freeze}`;
+        document.getElementById('skip-question').textContent = `⏭️ ${this.items.skip}`;
+        document.getElementById('remove-wrong').textContent = `❌ ${this.items.remove}`;
+    }
+
+    questionComplete(success) {
+        // 继续下一题或结束
+        this.currentQuestion++;
+        if (this.currentQuestion >= this.questions.length) {
+            this.levelComplete();
+        } else {
+            this.showQuestion();
         }
     }
 
     levelComplete() {
-        const coins = this.currentLevel * 20 + Math.floor(Math.random() * 30);
-        this.gold += coins;
+        const reward = GAME_DATA.gameConfig.coinReward;
+        this.coins += reward;
         
-        document.getElementById('coinsEarned').textContent = `+${coins}`;
-        document.getElementById('damageDealt').textContent = this.totalDamageDealt;
-        document.getElementById('resultIcon').textContent = '🎉';
-        document.getElementById('resultTitle').textContent = '胜利！';
-        document.getElementById('resultModal').style.display = 'flex';
+        if (!this.completedLevels.includes(this.currentLevel)) {
+            this.completedLevels.push(this.currentLevel);
+        }
         
-        this.unlockNextLevel();
-        this.saveGameState();
-        this.updateGoldDisplay();
+        if (!this.unlockedLevels.includes(this.currentLevel + 1)) {
+            this.unlockedLevels.push(this.currentLevel + 1);
+        }
+
+        this.showResult(true, reward);
     }
 
-    gameOver() {
-        document.getElementById('coinsEarned').textContent = '+0';
-        document.getElementById('damageDealt').textContent = this.totalDamageDealt;
-        document.getElementById('resultIcon').textContent = '💔';
-        document.getElementById('resultTitle').textContent = '失败了...';
-        document.getElementById('resultModal').style.display = 'flex';
+    levelFailed() {
+        this.showResult(false, 0);
     }
 
-    continueGame() {
-        document.getElementById('resultModal').style.display = 'none';
+    showResult(isWin, reward) {
+        this.showScreen('result-screen');
         
-        if (this.currentLevel < GAME_DATA.levels.length) {
-            this.backToBook();
+        const emoji = document.getElementById('result-emoji');
+        const title = document.getElementById('result-title');
+        const message = document.getElementById('result-message');
+        const rewards = document.getElementById('rewards');
+        const nextBtn = document.getElementById('next-level-btn');
+
+        if (isWin) {
+            emoji.textContent = '🎉';
+            title.textContent = '关卡完成！';
+            title.style.color = '#00b894';
+            message.textContent = `恭喜你打败了怪物！玛蒂尔达成功保护了图书馆！`;
+            rewards.innerHTML = `
+                <div class="reward-item">🪙 获得 ${reward} 金币</div>
+                <div class="reward-item">❤️ 生命已恢复</div>
+                <div class="reward-item">🔓 解锁下一关</div>
+            `;
+            nextBtn.style.display = 'inline-block';
         } else {
-            this.backToBook();
+            emoji.textContent = '😢';
+            title.textContent = '关卡失败...';
+            title.style.color = '#e74c3c';
+            message.textContent = '玛蒂尔达被打败了，但不要灰心，再试一次！';
+            rewards.innerHTML = `
+                <div class="reward-item">💡 提示：仔细阅读题目</div>
+                <div class="reward-item">🎵 多听几遍音频</div>
+            `;
+            nextBtn.style.display = 'none';
+        }
+    }
+
+    nextLevel() {
+        if (this.currentLevel < GAME_DATA.levels.length) {
+            this.startLevel(this.currentLevel + 1);
+        } else {
+            this.showScreen('start-screen');
+            alert('恭喜你通关了所有关卡！');
         }
     }
 
     retryLevel() {
-        document.getElementById('resultModal').style.display = 'none';
         this.startLevel(this.currentLevel);
     }
 
-    unlockNextLevel() {
-        const nextLevel = this.currentLevel + 1;
-        if (nextLevel <= GAME_DATA.levels.length) {
-            const card = document.querySelector(`.level-card[data-level="${nextLevel}"]`);
-            if (card) {
-                const status = card.querySelector('.level-status');
-                status.classList.remove('locked');
-                status.classList.add('completed');
-                status.textContent = '✓';
-            }
+    confirmQuit() {
+        if (confirm('确定要退出当前关卡吗？进度将不会保存。')) {
+            this.showScreen('level-select');
         }
     }
 
-    getNextUnlockedLevel() {
-        for (let i = 1; i <= GAME_DATA.levels.length; i++) {
-            const card = document.querySelector(`.level-card[data-level="${i}"]`);
-            const status = card.querySelector('.level-status');
-            if (!status.classList.contains('completed')) {
-                return i;
-            }
-        }
-        return 1;
-    }
+    useItem(itemType) {
+        if (this.items[itemType] <= 0) return;
 
-    openShop() {
-        document.getElementById('shopModal').style.display = 'flex';
-    }
+        this.items[itemType]--;
+        this.updateStatusBar();
 
-    closeShop() {
-        document.getElementById('shopModal').style.display = 'none';
-    }
-
-    buyItem(item) {
-        let cost = 0;
-        
-        switch (item) {
-            case 'weapon':
-                cost = 50;
-                if (this.gold >= cost) {
-                    this.gold -= cost;
-                    this.attackPower += 10;
-                }
-                break;
-            case 'armor':
-                cost = 50;
-                if (this.gold >= cost) {
-                    this.gold -= cost;
-                    this.defense += 5;
-                }
-                break;
+        switch(itemType) {
             case 'freeze':
-                cost = 30;
-                if (this.gold >= cost) {
-                    this.gold -= cost;
-                    this.freezeCount++;
-                }
+                this.freezeTime();
                 break;
             case 'skip':
-                cost = 30;
-                if (this.gold >= cost) {
-                    this.gold -= cost;
-                    this.skipCount++;
-                }
+                this.skipQuestion();
+                break;
+            case 'remove':
+                this.removeWrongAnswers();
                 break;
         }
-        
-        this.saveGameState();
-        this.updateGoldDisplay();
-        this.updateEquipmentDisplay();
-        this.updatePowerUpButtons();
     }
 
-    shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
+    freezeTime() {
+        clearInterval(this.timer);
+        this.timeLeft += 10;
+        this.startTimer();
+        this.showFloatingText('⏰ 时间冻结 +10秒！', '#00cec9');
+    }
+
+    skipQuestion() {
+        this.currentQuestion++;
+        this.showQuestion();
+        this.showFloatingText('⏭️ 跳过本题', '#fd79a8');
+    }
+
+    removeWrongAnswers() {
+        const question = this.questions[this.currentQuestion];
+        if (question.type !== 'multiple_choice') return;
+
+        const options = document.querySelectorAll('.option-btn');
+        const wrongOptions = [];
+        
+        options.forEach((btn, index) => {
+            if (index !== question.correct) {
+                wrongOptions.push(btn);
+            }
+        });
+
+        // 随机去掉2个错误答案
+        const toRemove = wrongOptions.sort(() => Math.random() - 0.5).slice(0, 2);
+        toRemove.forEach(btn => {
+            btn.style.opacity = '0.3';
+            btn.disabled = true;
+        });
+
+        this.showFloatingText('❌ 已去掉2个错误答案', '#e74c3c');
+    }
+
+    showFloatingText(text, color) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        div.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: ${color};
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            z-index: 10000;
+            animation: fadeInOut 2s ease forwards;
+        `;
+        
+        document.body.appendChild(div);
+        setTimeout(() => div.remove(), 2000);
+    }
+
+    playAudioText(text) {
+        // 使用 Web Speech API 朗读文本
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.1;
+            speechSynthesis.speak(utterance);
         }
     }
 }
 
+// 初始化游戏
 document.addEventListener('DOMContentLoaded', () => {
-    new Game();
+    window.game = new MatildaGame();
 });
+
+// 添加动画样式
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeInOut {
+        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    }
+`;
+document.head.appendChild(style);
