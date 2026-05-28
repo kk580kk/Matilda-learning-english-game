@@ -133,7 +133,6 @@ body {
 .right-page {
     left: 50%;
     border-radius: 0 10px 10px 0;
-    transform: rotateY(180deg);
 }
 
 .page-content {
