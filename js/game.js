@@ -87,15 +87,20 @@ class MatildaGame {
         const gameContainer = document.getElementById('gameContainer');
         const gameScreen = document.getElementById('gameScreen');
         const magicBook = document.getElementById('magicBook');
+        const bookPages = document.getElementById('bookPages');
         
         if (screenId === 'start-screen' || screenId === 'level-select') {
             // 显示主界面（魔法书）
             if (magicBook) magicBook.style.display = 'block';
             if (gameScreen) gameScreen.style.display = 'none';
+            // 激活书页内容
+            if (bookPages) bookPages.classList.add('active');
         } else if (screenId === 'game-screen') {
             // 显示游戏界面
             if (magicBook) magicBook.style.display = 'none';
             if (gameScreen) gameScreen.style.display = 'block';
+            // 停用书页内容
+            if (bookPages) bookPages.classList.remove('active');
         }
     }
 
