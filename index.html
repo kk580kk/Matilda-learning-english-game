@@ -17,7 +17,7 @@
                     <h2 class="book-subtitle">魔法书冒险</h2>
                     <div class="magic-icon">📚✨</div>
                 </div>
-                <button class="open-book-btn" id="openBookBtn">打开魔法书</button>
+                <button class="open-book-btn" id="openBookBtn">✨ 打开魔法书</button>
             </div>
             
             <div class="book-pages" id="bookPages">
@@ -25,37 +25,25 @@
                     <div class="page-content">
                         <h2 class="chapter-title">🎵 选择关卡</h2>
                         <div class="levels-container" id="levelsContainer">
-                            <div class="level-card" data-level="1">
+                            <div class="level-card current" data-level="1">
                                 <div class="level-number">1</div>
-                                <div class="level-info">
-                                    <span class="level-name">小试牛刀</span>
-                                    <span class="level-difficulty">简单</span>
-                                </div>
-                                <div class="level-status completed">✓</div>
+                                <div class="level-name">小试牛刀</div>
+                                <div class="level-song">🎵 简单</div>
                             </div>
-                            <div class="level-card" data-level="2">
+                            <div class="level-card locked" data-level="2">
                                 <div class="level-number">2</div>
-                                <div class="level-info">
-                                    <span class="level-name">魔法初现</span>
-                                    <span class="level-difficulty">中等</span>
-                                </div>
-                                <div class="level-status locked">🔒</div>
+                                <div class="level-name">魔法初现</div>
+                                <div class="level-song">🎵 中等</div>
                             </div>
-                            <div class="level-card" data-level="3">
+                            <div class="level-card locked" data-level="3">
                                 <div class="level-number">3</div>
-                                <div class="level-info">
-                                    <span class="level-name">怪物来袭</span>
-                                    <span class="level-difficulty">困难</span>
-                                </div>
-                                <div class="level-status locked">🔒</div>
+                                <div class="level-name">怪物来袭</div>
+                                <div class="level-song">🎵 困难</div>
                             </div>
-                            <div class="level-card boss-level" data-level="4">
+                            <div class="level-card locked boss-level" data-level="4">
                                 <div class="level-number">👑</div>
-                                <div class="level-info">
-                                    <span class="level-name">最终Boss</span>
-                                    <span class="level-difficulty">Boss</span>
-                                </div>
-                                <div class="level-status locked">🔒</div>
+                                <div class="level-name">最终Boss</div>
+                                <div class="level-song">🎵 Boss</div>
                             </div>
                         </div>
                     </div>
@@ -66,7 +54,7 @@
                         <h2 class="chapter-title">🎒 我的装备</h2>
                         <div class="equipment-container">
                             <div class="equipment-item" id="weapon">
-                                <div class="equip-icon">🗡️</div>
+                                <div class="equip-icon">🪄</div>
                                 <div class="equip-info">
                                     <span class="equip-name">魔法杖</span>
                                     <span class="equip-level">Lv.1</span>
@@ -74,7 +62,7 @@
                                 <div class="equip-stat">攻击力 +10</div>
                             </div>
                             <div class="equipment-item" id="armor">
-                                <div class="equip-icon">🛡️</div>
+                                <div class="equip-icon">🔮</div>
                                 <div class="equip-info">
                                     <span class="equip-name">魔法护盾</span>
                                     <span class="equip-level">Lv.1</span>
@@ -94,7 +82,7 @@
         
         <div class="game-screen" id="gameScreen">
             <div class="game-header">
-                <button class="back-btn" id="backBtn">返回</button>
+                <button class="back-btn" id="backBtn">← 返回</button>
                 <div class="game-title" id="gameTitle">关卡 1 - 小试牛刀</div>
                 <div class="health-bar-container">
                     <div class="health-bar-label">HP</div>
@@ -108,7 +96,7 @@
             <div class="battle-area">
                 <div class="player-area">
                     <div class="character" id="playerCharacter">
-                        <div class="character-emoji">🧒</div>
+                        <div class="character-emoji">🧙‍♀️</div>
                         <div class="character-name">玛蒂尔达</div>
                     </div>
                 </div>
@@ -126,20 +114,24 @@
             </div>
             
             <div class="question-area" id="questionArea">
-                <div class="question-type" id="questionType">选择题</div>
+                <div class="question-type" id="questionType">🎯 选择题</div>
                 <div class="question-text" id="questionText">听歌曲片段，选择正确的中文意思</div>
                 <div class="question-options" id="questionOptions"></div>
                 <div class="question-feedback" id="questionFeedback"></div>
             </div>
             
             <div class="spelling-area" id="spellingArea" style="display: none;">
-                <div class="spelling-hint" id="spellingHint">根据语境拼写单词</div>
+                <div class="question-type">✏️ 拼写题</div>
+                <div class="question-text">根据语境拼写单词</div>
+                <div class="spelling-hint" id="spellingHint">提示：这是一个关于魔法的单词</div>
                 <div class="spelling-sentence" id="spellingSentence">The ______ is very smart.</div>
                 <div class="spelling-drag-area" id="spellingDragArea"></div>
                 <div class="spelling-drop-area" id="spellingDropArea"></div>
             </div>
             
             <div class="matching-area" id="matchingArea" style="display: none;">
+                <div class="question-type">🔗 连线题</div>
+                <div class="question-text">将英文单词与对应的中文意思连线</div>
                 <div class="matching-columns">
                     <div class="matching-column left">
                         <div class="matching-items" id="matchingLeft"></div>
@@ -152,7 +144,9 @@
             </div>
             
             <div class="speaking-area" id="speakingArea" style="display: none;">
-                <div class="speaking-text" id="speakingText">请跟读：</div>
+                <div class="question-type">🎤 跟读题</div>
+                <div class="question-text">请跟读以下句子</div>
+                <div class="speaking-text">请跟读：</div>
                 <div class="speaking-sentence" id="speakingSentence">"I love reading books."</div>
                 <button class="speak-btn" id="speakBtn">🎤 开始录音</button>
                 <button class="play-btn" id="playBtn">🔊 播放示例</button>
@@ -160,14 +154,14 @@
             </div>
             
             <div class="song-player" id="songPlayer">
-                <div class="song-info" id="songInfo">🎵 播放中...</div>
+                <div class="song-info" id="songInfo">🎵 正在播放歌曲...</div>
                 <button class="skip-song-btn" id="skipSongBtn">跳过歌曲</button>
             </div>
             
             <div class="power-ups">
                 <button class="power-up-btn freeze" id="freezeBtn">❄️ 冻结时间</button>
                 <button class="power-up-btn skip" id="skipQuestionBtn">⏭️ 跳过问题</button>
-                <button class="power-up-btn hint" id="hintBtn">❌ 去掉错误答案</button>
+                <button class="power-up-btn hint" id="hintBtn">💡 去掉错误答案</button>
             </div>
             
             <div class="attack-effect" id="attackEffect"></div>
@@ -181,7 +175,7 @@
                 <div class="result-stats">
                     <div class="stat-item">
                         <span class="stat-label">获得金币</span>
-                        <span class="stat-value" id="coinsEarned">+50</span>
+                        <span class="stat-value" id="coinsEarned">+50 🪙</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">伤害输出</span>
@@ -189,7 +183,7 @@
                     </div>
                 </div>
                 <div class="result-buttons">
-                    <button class="result-btn" id="continueBtn">继续</button>
+                    <button class="result-btn" id="continueBtn">继续冒险</button>
                     <button class="result-btn secondary" id="retryBtn">重新挑战</button>
                 </div>
             </div>
@@ -200,7 +194,7 @@
                 <h2 class="shop-title">🛒 魔法商店</h2>
                 <div class="shop-items">
                     <div class="shop-item">
-                        <div class="shop-icon">🗡️</div>
+                        <div class="shop-icon">🪄</div>
                         <div class="shop-info">
                             <span class="shop-name">强化魔杖</span>
                             <span class="shop-desc">攻击力 +20</span>
@@ -208,7 +202,7 @@
                         <button class="shop-buy-btn" data-item="weapon">购买 50🪙</button>
                     </div>
                     <div class="shop-item">
-                        <div class="shop-icon">🛡️</div>
+                        <div class="shop-icon">🔮</div>
                         <div class="shop-info">
                             <span class="shop-name">强化护盾</span>
                             <span class="shop-desc">防御力 +10</span>
@@ -232,7 +226,7 @@
                         <button class="shop-buy-btn" data-item="skip">购买 30🪙</button>
                     </div>
                 </div>
-                <button class="close-shop-btn" id="closeShopBtn">关闭</button>
+                <button class="close-shop-btn" id="closeShopBtn">关闭商店</button>
             </div>
         </div>
     </div>
