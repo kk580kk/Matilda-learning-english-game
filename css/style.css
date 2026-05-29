@@ -150,20 +150,20 @@ body {
 /* 关卡选择 */
 #level-select h2 {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 .levels-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 20px;
     margin-bottom: 30px;
 }
 
 .level-card {
     background: linear-gradient(145deg, rgba(108, 92, 231, 0.3), rgba(253, 121, 168, 0.3));
     border-radius: 15px;
-    padding: 20px;
+    padding: 25px 20px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -176,7 +176,7 @@ body {
 }
 
 .level-card.locked {
-    opacity: 0.5;
+    opacity: 0.75;
     cursor: not-allowed;
 }
 
@@ -195,13 +195,14 @@ body {
 }
 
 .level-number {
-    font-size: 2em;
+    font-size: 2.5em;
     font-weight: bold;
 }
 
 .level-name {
-    font-size: 0.8em;
+    font-size: 0.9em;
     margin-top: 5px;
+    font-weight: 500;
 }
 
 /* 游戏界面 */
