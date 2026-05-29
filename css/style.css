@@ -224,6 +224,19 @@ body::before {
     display: flex;
 }
 
+/* ========== 魔法书封面 ========== */
+.magic-book .book-cover {
+    display: flex;
+}
+
+.magic-book .book-pages.active + .book-cover {
+    display: none;
+}
+
+.magic-book .book-pages.active {
+    display: flex;
+}
+
 .page {
     flex: 1;
     background: var(--bg-card);
