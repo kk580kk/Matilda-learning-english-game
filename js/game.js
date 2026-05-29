@@ -190,10 +190,10 @@ class MatildaGame {
                 break;
         }
 
-        // 播放音频提示（如果有）
-        if (question.audioText) {
-            this.playAudioText(question.audioText);
-        }
+        // 暂时注释掉音频播放（待实现语音合成）
+        // if (question.audioText) {
+        //     this.playAudioText(question.audioText);
+        // }
 
         // 启动计时器
         this.startTimer();
