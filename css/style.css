@@ -1203,3 +1203,50 @@ body::before {
     transform: none;
     box-shadow: none;
 }
+
+/* ========== 连线题样式 ========== */
+.matching-container {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-xl);
+    padding: var(--space-lg);
+    margin: var(--space-md) 0;
+}
+
+.match-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    min-width: 150px;
+}
+
+.match-item {
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.match-item:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--magic-primary);
+    transform: translateY(-2px);
+}
+
+.match-item.selected {
+    background: rgba(139, 92, 246, 0.3);
+    border-color: var(--magic-primary);
+    box-shadow: var(--shadow-glow);
+}
+
+.match-item.matched {
+    background: rgba(16, 185, 129, 0.3);
+    border-color: var(--magic-success);
+    opacity: 0.7;
+    cursor: default;
+}

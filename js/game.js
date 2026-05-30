@@ -381,8 +381,26 @@ class MatildaGame {
     }
 
     renderMatching(question) {
+        const matchingArea = document.getElementById('matchingArea');
+        if (!matchingArea) return;
+        
+        // 清空连线区域
+        matchingArea.innerHTML = '';
+        
+        // 创建题目类型标签
+        const typeDiv = document.createElement('div');
+        typeDiv.className = 'question-type';
+        typeDiv.textContent = '🔗 连线题';
+        matchingArea.appendChild(typeDiv);
+        
+        // 创建题目文本
+        const textDiv = document.createElement('div');
+        textDiv.className = 'question-text';
+        textDiv.textContent = question.question || '将英文单词与对应的中文意思连线';
+        matchingArea.appendChild(textDiv);
+        
         const container = document.createElement('div');
-        container.className = 'matching-area';
+        container.className = 'matching-container';
 
         // 左侧（英文）
         const leftCol = document.createElement('div');
@@ -418,16 +436,12 @@ class MatildaGame {
         submitBtn.className = 'btn btn-primary';
         submitBtn.textContent = '确认连线';
         submitBtn.style.marginTop = '20px';
-        submitBtn.style.gridColumn = '1 / -1';
         submitBtn.addEventListener('click', () => {
             this.checkMatchingAnswer(question.correctPairs);
         });
 
-        const wrapper = document.createElement('div');
-        wrapper.appendChild(container);
-        wrapper.appendChild(submitBtn);
-        
-        document.getElementById('questionOptions').appendChild(wrapper);
+        matchingArea.appendChild(container);
+        matchingArea.appendChild(submitBtn);
 
         this.selectedMatch = null;
         this.currentMatches = [];
@@ -770,10 +784,14 @@ class MatildaGame {
     }
 
     nextLevel() {
+        // 隐藏结果弹窗
+        const resultModal = document.getElementById('resultModal');
+        if (resultModal) resultModal.style.display = 'none';
+        
         if (this.currentLevel < GAME_DATA.levels.length) {
             this.startLevel(this.currentLevel + 1);
         } else {
-            this.showScreen('start-screen');
+            this.showScreen('level-select');
             alert('恭喜你通关了所有关卡！');
         }
     }
