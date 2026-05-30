@@ -435,17 +435,21 @@ class MatildaGame {
         container.appendChild(leftCol);
         container.appendChild(rightCol);
 
-        // 确认按钮
+        matchingArea.appendChild(container);
+
+        // 确认按钮 - 放在 container 外面，使用包装器居中
+        const btnWrapper = document.createElement('div');
+        btnWrapper.style.cssText = 'display: flex; justify-content: center; margin-top: 20px;';
+        
         const submitBtn = document.createElement('button');
         submitBtn.className = 'btn btn-primary';
         submitBtn.textContent = '确认连线';
-        submitBtn.style.marginTop = '20px';
         submitBtn.addEventListener('click', () => {
             this.checkMatchingAnswer(question.correctPairs);
         });
-
-        matchingArea.appendChild(container);
-        matchingArea.appendChild(submitBtn);
+        
+        btnWrapper.appendChild(submitBtn);
+        matchingArea.appendChild(btnWrapper);
 
         this.selectedMatch = null;
         this.currentMatches = [];
