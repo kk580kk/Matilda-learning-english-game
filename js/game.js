@@ -402,6 +402,10 @@ class MatildaGame {
         const container = document.createElement('div');
         container.className = 'matching-container';
 
+        // 打乱右侧顺序（中文），左侧保持原顺序
+        const shuffledRight = question.right.map((item, index) => ({ item, index }))
+            .sort(() => Math.random() - 0.5);
+
         // 左侧（英文）
         const leftCol = document.createElement('div');
         leftCol.className = 'match-column';
@@ -415,14 +419,14 @@ class MatildaGame {
             leftCol.appendChild(div);
         });
 
-        // 右侧（中文）
+        // 右侧（中文）- 打乱后的顺序
         const rightCol = document.createElement('div');
         rightCol.className = 'match-column';
-        question.right.forEach((item, index) => {
+        shuffledRight.forEach(({ item, index }) => {
             const div = document.createElement('div');
             div.className = 'match-item';
             div.textContent = item;
-            div.dataset.index = index;
+            div.dataset.index = index;  // 保持原始索引用于配对验证
             div.dataset.side = 'right';
             div.addEventListener('click', () => this.handleMatchClick(div));
             rightCol.appendChild(div);
@@ -755,6 +759,9 @@ class MatildaGame {
     }
 
     levelFailed() {
+        // 确保计时器已停止
+        clearInterval(this.timer);
+        this.timer = null;
         this.showResult(false, 0);
     }
 
@@ -797,6 +804,9 @@ class MatildaGame {
     }
 
     retryLevel() {
+        // 确保清理所有状态再重新开始
+        clearInterval(this.timer);
+        this.timer = null;
         this.startLevel(this.currentLevel);
     }
 
