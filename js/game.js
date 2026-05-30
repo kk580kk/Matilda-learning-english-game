@@ -168,32 +168,52 @@ class MatildaGame {
         }
 
         const question = this.questions[this.currentQuestion];
+        
+        // 获取各个区域
         const questionArea = document.getElementById('questionArea');
+        const spellingArea = document.getElementById('spellingArea');
+        const matchingArea = document.getElementById('matchingArea');
+        const speakingArea = document.getElementById('speakingArea');
         
-        // 设置题目文本
-        const questionText = document.getElementById('questionText');
-        if (questionText) questionText.textContent = question.question || question.context;
+        // 隐藏所有题型区域
+        if (questionArea) questionArea.style.display = 'none';
+        if (spellingArea) spellingArea.style.display = 'none';
+        if (matchingArea) matchingArea.style.display = 'none';
+        if (speakingArea) speakingArea.style.display = 'none';
         
-        const questionType = document.getElementById('questionType');
-        if (questionType) questionType.textContent = this.getQuestionTypeText(question.type);
-        
-        // 清空答题区
-        const questionOptions = document.getElementById('questionOptions');
-        if (questionOptions) questionOptions.innerHTML = '';
-        
-        // 根据题型渲染不同界面
+        // 根据题型显示对应区域
         switch(question.type) {
             case 'multiple_choice':
-                this.renderMultipleChoice(question);
+                if (questionArea) {
+                    questionArea.style.display = 'block';
+                    // 设置题目文本
+                    const questionText = document.getElementById('questionText');
+                    if (questionText) questionText.textContent = question.question || question.context;
+                    const questionType = document.getElementById('questionType');
+                    if (questionType) questionType.textContent = this.getQuestionTypeText(question.type);
+                    // 清空答题区
+                    const questionOptions = document.getElementById('questionOptions');
+                    if (questionOptions) questionOptions.innerHTML = '';
+                    this.renderMultipleChoice(question);
+                }
                 break;
             case 'spelling':
-                this.renderSpelling(question);
+                if (spellingArea) {
+                    spellingArea.style.display = 'block';
+                    this.renderSpelling(question);
+                }
                 break;
             case 'matching':
-                this.renderMatching(question);
+                if (matchingArea) {
+                    matchingArea.style.display = 'block';
+                    this.renderMatching(question);
+                }
                 break;
             case 'read_along':
-                this.renderReadAlong(question);
+                if (speakingArea) {
+                    speakingArea.style.display = 'block';
+                    this.renderReadAlong(question);
+                }
                 break;
         }
 
@@ -234,12 +254,31 @@ class MatildaGame {
     }
 
     renderSpelling(question) {
+        const spellingArea = document.getElementById('spellingArea');
+        if (!spellingArea) return;
+        
+        // 清空拼写区域
+        spellingArea.innerHTML = '';
+        
+        // 创建题目类型标签
+        const typeDiv = document.createElement('div');
+        typeDiv.className = 'question-type';
+        typeDiv.textContent = '✏️ 拼写题';
+        spellingArea.appendChild(typeDiv);
+        
+        // 创建题目文本
+        const textDiv = document.createElement('div');
+        textDiv.className = 'question-text';
+        textDiv.textContent = question.question || question.context;
+        spellingArea.appendChild(textDiv);
+        
+        // 创建容器
         const container = document.createElement('div');
         container.className = 'spelling-container';
 
         // 创建填空槽
         const slotsArea = document.createElement('div');
-        slotsArea.className = 'spelling-area';
+        slotsArea.className = 'spelling-slots';
         
         const wordLength = question.word.length;
         const slots = [];
@@ -286,7 +325,7 @@ class MatildaGame {
         });
         
         container.appendChild(submitBtn);
-        document.getElementById('questionOptions').appendChild(container);
+        spellingArea.appendChild(container);
     }
 
     handleLetterClick(tile, slots) {
