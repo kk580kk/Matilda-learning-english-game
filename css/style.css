@@ -229,7 +229,7 @@ body::before {
     display: flex;
 }
 
-.magic-book .book-pages.active + .book-cover {
+.magic-book .book-pages.active ~ .book-cover {
     display: none;
 }
 
