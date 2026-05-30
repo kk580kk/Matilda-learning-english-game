@@ -156,7 +156,7 @@ class MatildaGame {
         this.monsterHealth = GAME_DATA.gameConfig.monsterHealth;
         this.updateHealthBars();
         
-        this.showScreen('gameScreen');
+        this.showScreen('game-screen');
         this.showQuestion();
         this.updateStatusBar();
     }
