@@ -815,6 +815,11 @@ class MatildaGame {
         // 确保清理所有状态再重新开始
         clearInterval(this.timer);
         this.timer = null;
+        
+        // 隐藏结果弹窗
+        const resultModal = document.getElementById('resultModal');
+        if (resultModal) resultModal.style.display = 'none';
+        
         this.startLevel(this.currentLevel);
     }
 
