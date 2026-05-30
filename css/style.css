@@ -1159,6 +1159,13 @@ body::before {
     background: rgba(139, 92, 246, 0.3);
     border-color: var(--magic-primary);
     color: var(--magic-primary);
+    cursor: pointer;
+}
+
+.letter-slot.filled:hover {
+    background: rgba(239, 68, 68, 0.3);
+    border-color: var(--magic-danger);
+    transform: scale(1.05);
 }
 
 .letter-pool {

@@ -287,6 +287,10 @@ class MatildaGame {
             const slot = document.createElement('div');
             slot.className = 'letter-slot';
             slot.dataset.index = i;
+            // 添加点击事件，可以删除已填的字母
+            slot.addEventListener('click', () => {
+                this.handleSlotClick(slot, slots);
+            });
             slots.push(slot);
             slotsArea.appendChild(slot);
         }
@@ -338,6 +342,26 @@ class MatildaGame {
             emptySlot.dataset.letter = tile.dataset.letter;
             emptySlot.classList.add('filled');
             tile.classList.add('used');
+        }
+    }
+
+    handleSlotClick(slot, slots) {
+        // 如果槽中有字母，删除它并恢复对应的字母池中的字母
+        if (slot.textContent) {
+            const letter = slot.dataset.letter;
+            
+            // 找到字母池中对应的字母（恢复使用状态）
+            const poolTiles = document.querySelectorAll('.letter-tile');
+            poolTiles.forEach(tile => {
+                if (tile.dataset.letter === letter && tile.classList.contains('used')) {
+                    tile.classList.remove('used');
+                }
+            });
+            
+            // 清空槽
+            slot.textContent = '';
+            slot.dataset.letter = '';
+            slot.classList.remove('filled');
         }
     }
 
