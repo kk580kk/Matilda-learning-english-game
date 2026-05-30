@@ -770,6 +770,10 @@ class MatildaGame {
     }
 
     showResult(isWin, reward) {
+        // 确保停止所有游戏逻辑
+        clearInterval(this.timer);
+        this.timer = null;
+        
         const resultModal = document.getElementById('resultModal');
         if (resultModal) resultModal.style.display = 'flex';
         
