@@ -1,5 +1,31 @@
 # 玛蒂尔达的魔法书 - 英语学习游戏
 
+## 项目结构
+
+```
+Matilda-learning-english-game/
+├── index.html              # 主入口文件
+├── README.md               # 项目说明
+├── PROJECT_STRUCTURE.md    # 项目结构规范
+├── LICENSE                 # 许可证文件
+├── docs/                   # 文档目录
+├── css/                    # 样式文件目录
+│   └── style.css           # 主样式文件
+├── js/                     # JavaScript 文件目录
+│   ├── game.js             # 游戏主逻辑
+│   └── questions.js        # 题目数据
+├── assets/                 # 静态资源目录
+│   ├── images/             # 图片资源
+│   ├── audio/              # 音频资源
+│   └── fonts/              # 字体资源
+└── backup/                 # 备份文件目录（已加入 .gitignore）
+```
+
+**开发规范**：所有代码文件必须按上述结构存放，禁止在根目录存放 CSS/JS 文件。
+详见 [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)
+
+---
+
 ## 项目商业描述（NPDP 框架）
 
 ---

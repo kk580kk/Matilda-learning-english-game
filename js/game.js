@@ -494,15 +494,34 @@ class MatildaGame {
     }
 
     renderReadAlong(question) {
+        const speakingArea = document.getElementById('speakingArea');
+        if (!speakingArea) return;
+        
+        // 清空并重新构建跟读区域
+        speakingArea.innerHTML = '';
+        
+        // 创建题目类型标签
+        const typeDiv = document.createElement('div');
+        typeDiv.className = 'question-type';
+        typeDiv.textContent = '🎤 跟读题';
+        speakingArea.appendChild(typeDiv);
+        
+        // 创建题目文本
+        const textDiv = document.createElement('div');
+        textDiv.className = 'question-text';
+        textDiv.textContent = '请跟读下面的英文句子';
+        speakingArea.appendChild(textDiv);
+        
+        // 创建内容容器
         const container = document.createElement('div');
         container.className = 'read-along-area';
 
         // 原文
-        const textDiv = document.createElement('div');
-        textDiv.className = 'read-text';
-        textDiv.style.cssText = 'font-size: 1.5em; margin-bottom: 15px; line-height: 1.6; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px;';
-        textDiv.innerHTML = `"${question.text}"`;
-        container.appendChild(textDiv);
+        const readTextDiv = document.createElement('div');
+        readTextDiv.className = 'read-text';
+        readTextDiv.style.cssText = 'font-size: 1.5em; margin-bottom: 15px; line-height: 1.6; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px;';
+        readTextDiv.innerHTML = `"${question.text}"`;
+        container.appendChild(readTextDiv);
 
         // 翻译
         const transDiv = document.createElement('div');
@@ -516,18 +535,19 @@ class MatildaGame {
         micBtn.className = 'mic-btn';
         micBtn.textContent = '🎤';
         micBtn.title = '按住说话';
+        micBtn.style.cssText = 'width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(145deg, var(--primary), var(--secondary)); border: none; font-size: 3em; cursor: pointer; transition: all 0.3s ease; margin: 20px 0;';
         
         let recording = false;
         micBtn.addEventListener('mousedown', () => {
             recording = true;
-            micBtn.classList.add('recording');
+            micBtn.style.animation = 'recording-pulse 1s infinite';
             this.startRecording();
         });
 
         micBtn.addEventListener('mouseup', () => {
             if (recording) {
                 recording = false;
-                micBtn.classList.remove('recording');
+                micBtn.style.animation = '';
                 this.stopRecording(question);
             }
         });
@@ -536,7 +556,7 @@ class MatildaGame {
         micBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
             recording = true;
-            micBtn.classList.add('recording');
+            micBtn.style.animation = 'recording-pulse 1s infinite';
             this.startRecording();
         });
 
@@ -544,7 +564,7 @@ class MatildaGame {
             e.preventDefault();
             if (recording) {
                 recording = false;
-                micBtn.classList.remove('recording');
+                micBtn.style.animation = '';
                 this.stopRecording(question);
             }
         });
@@ -557,7 +577,7 @@ class MatildaGame {
         hint.style.cssText = 'color: #636e72;';
         container.appendChild(hint);
 
-        document.getElementById('questionOptions').appendChild(container);
+        speakingArea.appendChild(container);
     }
 
     startRecording() {
