@@ -10,6 +10,23 @@
 </head>
 <body>
     <div class="game-container" id="gameContainer">
+        <!-- 用户信息栏 -->
+        <div class="user-info-bar" id="userInfoBar">
+            <div class="user-avatar" id="userAvatar">🧙‍♀️</div>
+            <div class="user-details">
+                <div class="user-name" id="userName">小巫师</div>
+                <div class="user-level">Lv.<span id="userLevel">1</span></div>
+            </div>
+            <div class="user-gold">
+                <span class="gold-icon">🪙</span>
+                <span id="userGold">0</span>
+            </div>
+            <div class="user-actions">
+                <button class="user-btn" id="leaderboardBtn" title="排行榜">🏆</button>
+                <button class="user-btn" id="settingsBtn" title="设置">⚙️</button>
+                <button class="user-btn" id="accountBtn" title="账号">👤</button>
+            </div>
+        </div>
         <div class="magic-book" id="magicBook">
             <div class="book-cover">
                 <div class="cover-decoration">
@@ -227,6 +244,134 @@
                     </div>
                 </div>
                 <button class="close-shop-btn" id="closeShopBtn">关闭商店</button>
+            </div>
+        </div>
+        
+        <!-- 用户账号弹窗 -->
+        <div class="user-modal" id="userModal">
+            <div class="user-modal-content">
+                <div class="user-modal-header">
+                    <h2 class="user-modal-title" id="userModalTitle">👤 账号中心</h2>
+                    <button class="user-modal-close" id="userModalClose">×</button>
+                </div>
+                
+                <!-- 游客状态 -->
+                <div class="user-guest-panel" id="guestPanel">
+                    <div class="user-status">
+                        <span class="status-label">当前状态：</span>
+                        <span class="status-value guest">👤 游客模式</span>
+                    </div>
+                    <p class="user-tip">登录后可保存进度到云端，更换设备也能继续游戏</p>
+                    <div class="user-auth-forms">
+                        <div class="auth-form">
+                            <h3>注册新账号</h3>
+                            <input type="text" id="regNickname" placeholder="输入昵称" class="user-input">
+                            <input type="password" id="regPassword" placeholder="设置密码" class="user-input">
+                            <button class="user-btn-primary" id="registerBtn">注册</button>
+                        </div>
+                        <div class="auth-divider">或</div>
+                        <div class="auth-form">
+                            <h3>登录已有账号</h3>
+                            <input type="text" id="loginNickname" placeholder="输入昵称" class="user-input">
+                            <input type="password" id="loginPassword" placeholder="输入密码" class="user-input">
+                            <button class="user-btn-primary" id="loginBtn">登录</button>
+                        </div>
+                    </div>
+                    <div class="user-message" id="userMessage"></div>
+                </div>
+                
+                <!-- 登录后状态 -->
+                <div class="user-logged-panel" id="loggedPanel" style="display: none;">
+                    <div class="user-status">
+                        <span class="status-label">当前状态：</span>
+                        <span class="status-value logged">✅ 已登录</span>
+                    </div>
+                    <div class="user-info-display">
+                        <div class="info-row">
+                            <span class="info-label">昵称：</span>
+                            <span class="info-value" id="displayNickname">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">等级：</span>
+                            <span class="info-value">Lv.<span id="displayLevel">1</span></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">经验：</span>
+                            <span class="info-value"><span id="displayExp">0</span> / <span id="displayExpNeeded">100</span></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">金币：</span>
+                            <span class="info-value gold-text"><span id="displayGold">0</span> 🪙</span>
+                        </div>
+                    </div>
+                    <div class="user-info-edit">
+                        <h3>修改资料</h3>
+                        <input type="text" id="editNickname" placeholder="新昵称" class="user-input">
+                        <select id="editAvatar" class="user-input">
+                            <option value="🧙‍♀️">🧙‍♀️ 女孩</option>
+                            <option value="🧙‍♂️">🧙‍♂️ 男孩</option>
+                            <option value="🦸">🦸 英雄</option>
+                            <option value="🧝">🧝 精灵</option>
+                            <option value="🐉">🐉 龙骑士</option>
+                            <option value="👸">👸 公主</option>
+                            <option value="🤴">🤴 王子</option>
+                            <option value="🦄">🦄 独角兽</option>
+                        </select>
+                        <button class="user-btn-secondary" id="saveProfileBtn">保存修改</button>
+                    </div>
+                    <button class="user-btn-danger" id="logoutBtn">退出登录</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 设置弹窗 -->
+        <div class="settings-modal" id="settingsModal">
+            <div class="settings-modal-content">
+                <div class="settings-modal-header">
+                    <h2>⚙️ 游戏设置</h2>
+                    <button class="settings-modal-close" id="settingsModalClose">×</button>
+                </div>
+                <div class="settings-options">
+                    <div class="setting-item">
+                        <span class="setting-label">🔊 音效</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="soundToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">🎵 背景音乐</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="musicToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-footer">
+                    <button class="settings-save-btn" id="settingsSaveBtn">保存设置</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 排行榜弹窗 -->
+        <div class="leaderboard-modal" id="leaderboardModal">
+            <div class="leaderboard-content">
+                <div class="leaderboard-header">
+                    <h2>🏆 排行榜</h2>
+                    <button class="leaderboard-close" id="leaderboardClose">×</button>
+                </div>
+                <div class="leaderboard-tabs">
+                    <button class="leaderboard-tab active" data-type="level">关卡数</button>
+                    <button class="leaderboard-tab" data-type="gold">金币数</button>
+                    <button class="leaderboard-tab" data-type="rank">等级</button>
+                </div>
+                <div class="leaderboard-list" id="leaderboardList">
+                    <!-- 排行榜数据将通过 JS 动态生成 -->
+                </div>
+                <div class="leaderboard-my-rank" id="myRankSection">
+                    <span class="my-rank-label">我的排名：</span>
+                    <span class="my-rank-value" id="myRankValue">-</span>
+                </div>
             </div>
         </div>
     </div>
