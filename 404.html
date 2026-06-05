@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - 页面未找到 | 玛蒂尔达魔法书</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Serif SC', 'ZCOOL KuaiLe', serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #e8d5b7;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 40px;
+            max-width: 600px;
+        }
+        
+        .magic-book {
+            font-size: 100px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        h1 {
+            font-size: 72px;
+            color: #ffd93d;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            color: #b8c5d6;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .spells {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            font-size: 40px;
+        }
+        
+        .spell {
+            animation: sparkle 2s ease-in-out infinite;
+        }
+        
+        .spell:nth-child(2) { animation-delay: 0.5s; }
+        .spell:nth-child(3) { animation-delay: 1s; }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="magic-book">📚✨</div>
+        <h1>404</h1>
+        <p>抱歉，魔法书里找不到这一页！<br>也许它已经被传送走了...</p>
+        <a href="#/" class="btn" onclick="window.location.href='/'">回到首页</a>
+        <div class="spells">
+            <span class="spell">✨</span>
+            <span class="spell">🔮</span>
+            <span class="spell">✨</span>
+        </div>
+    </div>
+    
+    <script>
+        // SPA fallback: 将所有 404 请求重定向到 index.html
+        // GitHub Pages 会将所有请求发送到 404.html，我们在这里处理 SPA 路由
+        (function() {
+            var path = window.location.pathname;
+            var search = window.location.search;
+            
+            // 如果不是直接访问根路径，则重写 URL
+            if (path !== '/' && path !== '/index.html') {
+                // 保留查询参数，将路径转为 hash
+                var hash = path.replace(/^\//, '');
+                if (search) {
+                    hash += search;
+                }
+                window.location.replace('/?redirect=' + encodeURIComponent(hash));
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -271,6 +271,180 @@ class UserManager {
     }
 }
 
+// ========== FR-001: 随机题库系统 ==========
+/**
+ * 随机题目选择器 - 使用 Fisher-Yates 洗牌算法
+ * 支持按难度筛选、防重复机制
+ */
+class RandomQuestionPicker {
+    constructor() {
+        // 默认每轮题目数量
+        this.DEFAULT_QUESTIONS_PER_ROUND = 10;
+    }
+
+    /**
+     * 从题库中随机抽取题目
+     * @param {Array} questionBank - 题库数组
+     * @param {Object} filter - 筛选条件
+     * @returns {Object} - 包含题目和元数据的结果
+     */
+    pickQuestions(questionBank, filter = {}) {
+        const { difficulty, tags, excludeIds = [], limit = this.DEFAULT_QUESTIONS_PER_ROUND } = filter;
+
+        // 1. 根据条件过滤题库
+        let candidates = [...questionBank];
+
+        // 按难度筛选
+        if (difficulty && difficulty.length > 0) {
+            candidates = candidates.filter(q => difficulty.includes(q.difficulty));
+        }
+
+        // 按标签筛选
+        if (tags && tags.length > 0) {
+            candidates = candidates.filter(q => 
+                q.tags && tags.some(tag => q.tags.includes(tag))
+            );
+        }
+
+        // 排除已抽取的题目
+        if (excludeIds.length > 0) {
+            candidates = candidates.filter(q => !excludeIds.includes(q.id));
+        }
+
+        // 2. 如果候选数量不足 limit，返回全部
+        const totalAvailable = candidates.length;
+        if (candidates.length <= limit) {
+            return {
+                questions: candidates,
+                totalAvailable,
+                metadata: this.generateMetadata(candidates)
+            };
+        }
+
+        // 3. Fisher-Yates 洗牌
+        this.fisherYatesShuffle(candidates);
+
+        // 4. 返回前 limit 个题目
+        const selected = candidates.slice(0, limit);
+        
+        return {
+            questions: selected,
+            totalAvailable,
+            metadata: this.generateMetadata(selected)
+        };
+    }
+
+    /**
+     * Fisher-Yates 洗牌算法
+     * @param {Array} array - 要打乱的数组
+     */
+    fisherYatesShuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    /**
+     * 生成题目集元数据
+     * @param {Array} questions - 题目数组
+     * @returns {Object} - 元数据
+     */
+    generateMetadata(questions) {
+        const difficultyDistribution = { easy: 0, medium: 0, hard: 0 };
+        const tagDistribution = {};
+
+        questions.forEach(q => {
+            if (q.difficulty) {
+                difficultyDistribution[q.difficulty]++;
+            }
+            if (q.tags) {
+                q.tags.forEach(tag => {
+                    tagDistribution[tag] = (tagDistribution[tag] || 0) + 1;
+                });
+            }
+        });
+
+        return {
+            difficultyDistribution,
+            tagDistribution
+        };
+    }
+
+    /**
+     * 获取题库统计信息
+     * @param {Array} questionBank - 题库
+     * @returns {Object} - 统计信息
+     */
+    getBankStats(questionBank) {
+        const total = questionBank.length;
+        const difficultyDistribution = { easy: 0, medium: 0, hard: 0 };
+        const typeDistribution = {};
+
+        questionBank.forEach(q => {
+            if (q.difficulty) {
+                difficultyDistribution[q.difficulty]++;
+            }
+            if (q.type) {
+                typeDistribution[q.type] = (typeDistribution[q.type] || 0) + 1;
+            }
+        });
+
+        return {
+            total,
+            difficultyDistribution,
+            typeDistribution
+        };
+    }
+
+    /**
+     * 从 GAME_DATA.levels 中收集所有题目
+     * @returns {Array} - 扁平化的题目数组
+     */
+    collectAllQuestions() {
+        const allQuestions = [];
+        
+        if (typeof GAME_DATA !== 'undefined' && GAME_DATA.levels) {
+            GAME_DATA.levels.forEach((level, levelIndex) => {
+                if (level.questions && Array.isArray(level.questions)) {
+                    level.questions.forEach((q, qIndex) => {
+                        // 为题目生成唯一 ID
+                        const question = { ...q };
+                        question.id = q.id || `l${level.id}_q${qIndex + 1}`;
+                        question.levelId = level.id;
+                        // 如果题目没有 difficulty，从难度分布推断
+                        if (!question.difficulty) {
+                            question.difficulty = this.inferDifficulty(level.id, qIndex);
+                        }
+                        // 确保有 tags 数组
+                        if (!question.tags) {
+                            question.tags = [`level_${level.id}`];
+                        }
+                        allQuestions.push(question);
+                    });
+                }
+            });
+        }
+
+        return allQuestions;
+    }
+
+    /**
+     * 根据关卡和题目索引推断难度
+     * @param {number} levelId - 关卡ID
+     * @param {number} qIndex - 题目索引
+     * @returns {string} - 难度级别
+     */
+    inferDifficulty(levelId, qIndex) {
+        // 前两关偏简单
+        if (levelId <= 2) return 'easy';
+        // 中间关卡中等
+        if (levelId <= 4) return 'medium';
+        // 后面的关卡偏难
+        return 'hard';
+    }
+}
+
 // ========== V1.0: 语音识别管理器 ==========
 class SpeechRecognitionManager {
     constructor() {
@@ -518,6 +692,11 @@ class MatildaGame {
         // V1.0: 语音识别
         this.speechManager = new SpeechRecognitionManager();
 
+        // FR-001: 随机题库系统
+        this.questionPicker = new RandomQuestionPicker();
+        this.questionsPerRound = 10; // 默认每轮题目数量
+        this.usedQuestionIds = []; // 记录已用题目ID，防止当前轮次重复
+
         // F-009: 排行榜
         this.leaderboardManager = new LeaderboardManager();
 
@@ -643,13 +822,28 @@ class MatildaGame {
             // 隐藏封面，激活书页内容
             if (bookCover) bookCover.style.display = 'none';
             if (bookPages) bookPages.classList.add('active');
+            
+            // 更新路由 hash
+            const routeKey = Object.entries(ROUTES).find(([k, v]) => v === screenId)?.[0];
+            if (routeKey && location.hash.slice(1) !== routeKey) {
+                location.hash = routeKey;
+            }
         } else if (screenId === 'game-screen') {
             // 显示游戏界面
             if (magicBook) magicBook.style.display = 'none';
             if (gameScreen) gameScreen.style.display = 'block';
             // 停用书页内容
             if (bookPages) bookPages.classList.remove('active');
+            
+            // 更新路由 hash
+            location.hash = 'practice';
         }
+    }
+
+    // 路由变化回调
+    onRouteChange(hash, screenId) {
+        console.log(`[Game] 路由变化: ${hash} -> ${screenId}`);
+        // 可以在这里添加路由变化时的额外逻辑
     }
 
     loadLevelSelect() {
@@ -688,7 +882,36 @@ class MatildaGame {
     startLevel(levelId) {
         this.currentLevel = levelId;
         const levelData = GAME_DATA.levels.find(l => l.id === levelId);
-        this.questions = [...levelData.questions];
+        
+        // FR-001: 随机抽题 - 从当前关卡题目中随机抽取
+        const levelQuestions = levelData.questions || [];
+        
+        // 为题目生成唯一ID（如果还没有）
+        const questionsWithIds = levelQuestions.map((q, index) => ({
+            ...q,
+            id: q.id || `l${levelId}_q${index + 1}`,
+            // 如果没有难度，根据关卡推断
+            difficulty: q.difficulty || this.questionPicker.inferDifficulty(levelId, index),
+            // 如果没有标签，添加关卡标签
+            tags: q.tags || [`level_${levelId}`]
+        }));
+        
+        // 使用随机抽题器选择题目
+        const result = this.questionPicker.pickQuestions(questionsWithIds, {
+            excludeIds: this.usedQuestionIds,
+            limit: this.questionsPerRound
+        });
+        
+        this.questions = result.questions;
+        
+        // 如果题目不足，显示警告
+        if (result.totalAvailable < this.questionsPerRound) {
+            console.warn(`题库题目不足: 请求 ${this.questionsPerRound} 题，实际 ${result.totalAvailable} 题`);
+        }
+        
+        // 记录本轮使用的题目ID
+        this.usedQuestionIds = this.questions.map(q => q.id);
+        
         this.currentQuestion = 0;
         
         // 设置怪物
@@ -706,6 +929,47 @@ class MatildaGame {
         this.showQuestion();
         this.updateStatusBar();
     }
+
+    // ========== FR-001: 随机题库配置方法 ==========
+    /**
+     * 设置每轮题目数量
+     * @param {number} count - 题目数量
+     */
+    setQuestionsPerRound(count) {
+        if (typeof count === 'number' && count > 0 && count <= 50) {
+            this.questionsPerRound = count;
+            console.log(`每轮题目数量已设置为: ${count}`);
+        } else {
+            console.warn('无效的题目数量，请输入 1-50 之间的数字');
+        }
+    }
+
+    /**
+     * 获取当前题库统计信息
+     * @returns {Object} - 题库统计信息
+     */
+    getQuestionBankStats() {
+        return this.questionPicker.getBankStats(
+            this.questionPicker.collectAllQuestions()
+        );
+    }
+
+    /**
+     * 重置已用题目记录（用于新游戏或重新开始）
+     */
+    resetUsedQuestions() {
+        this.usedQuestionIds = [];
+        console.log('已用题目记录已重置');
+    }
+
+    /**
+     * 显示题库耗尽提示
+     */
+    showQuestionBankExhausted() {
+        alert('题库题目已耗尽！将重新开始抽取。');
+        this.usedQuestionIds = [];
+    }
+    // ==============================================
 
     showQuestion() {
         if (this.currentQuestion >= this.questions.length) {
@@ -1927,3 +2191,173 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// ========== SPA 路由系统 (FR-003) ==========
+
+// 路由映射
+const ROUTES = {
+    '': 'start-screen',
+    'levels': 'level-select',
+    'practice': 'game-screen',
+    'settings': 'settings-screen'
+};
+
+// 路由处理函数
+function handleRoute() {
+    const hash = location.hash.slice(1) || '';
+    const targetScreen = ROUTES[hash] || 'start-screen';
+    
+    // 获取必要的 DOM 元素
+    const bookCover = document.querySelector('.book-cover');
+    const bookPages = document.getElementById('bookPages');
+    const gameScreen = document.getElementById('gameScreen');
+    const settingsModal = document.getElementById('settingsModal');
+    const magicBook = document.getElementById('magicBook');
+    
+    // 先隐藏所有可能的面
+    if (bookCover) bookCover.style.display = 'none';
+    if (bookPages) bookPages.style.display = 'none';
+    if (gameScreen) gameScreen.style.display = 'none';
+    if (settingsModal) settingsModal.style.display = 'none';
+    
+    // 根据路由显示对应页面
+    switch (targetScreen) {
+        case 'start-screen':
+            // 显示封面（隐藏书页）
+            if (bookCover) bookCover.style.display = 'flex';
+            if (magicBook) magicBook.classList.remove('book-open');
+            break;
+            
+        case 'level-select':
+            // 显示关卡选择（书页）
+            if (bookPages) bookPages.style.display = 'flex';
+            if (magicBook) magicBook.classList.add('book-open');
+            break;
+            
+        case 'game-screen':
+            // 显示游戏界面
+            if (gameScreen) gameScreen.style.display = 'block';
+            break;
+            
+        case 'settings-screen':
+            // 显示设置弹窗
+            if (settingsModal) {
+                settingsModal.style.display = 'flex';
+            } else if (window.game && typeof window.game.showSettings === 'function') {
+                window.game.showSettings();
+            }
+            break;
+            
+        default:
+            // 未知路由，重定向到首页
+            location.hash = '';
+            break;
+    }
+    
+    // 如果游戏已初始化，触发页面切换事件
+    if (window.game && typeof window.game.onRouteChange === 'function') {
+        window.game.onRouteChange(hash, targetScreen);
+    }
+    
+    console.log(`[Router] 路由切换: #${hash} -> ${targetScreen}`);
+}
+
+// 初始化路由
+function initRouter() {
+    // 监听 hash 变化
+    window.addEventListener('hashchange', handleRoute);
+    
+    // 初始路由处理
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', handleRoute);
+    } else {
+        handleRoute();
+    }
+}
+
+// 页面加载完成后初始化路由
+initRouter();
+
+// ========== StorageService 类 (FR-003) ==========
+
+class StorageService {
+    static KEYS = {
+        SETTINGS: 'matilda_user_settings',
+        SESSION: 'matilda_current_session',
+        USER: 'matilda_user',
+        PROGRESS: 'matilda_progress',
+        ACCOUNTS: 'matilda_accounts'
+    };
+    
+    // 获取用户设置
+    static getSettings() {
+        try {
+            const data = localStorage.getItem(this.KEYS.SETTINGS);
+            return data ? JSON.parse(data) : this.getDefaultSettings();
+        } catch (e) {
+            console.error('获取设置失败:', e);
+            return this.getDefaultSettings();
+        }
+    }
+    
+    // 保存用户设置
+    static saveSettings(settings) {
+        try {
+            localStorage.setItem(this.KEYS.SETTINGS, JSON.stringify(settings));
+            return true;
+        } catch (e) {
+            console.error('保存设置失败:', e);
+            return false;
+        }
+    }
+    
+    // 获取默认设置
+    static getDefaultSettings() {
+        return {
+            sound: true,
+            music: true,
+            difficulty: 'normal',
+            showHints: true
+        };
+    }
+    
+    // 获取当前会话
+    static getSession() {
+        try {
+            const data = localStorage.getItem(this.KEYS.SESSION);
+            return data ? JSON.parse(data) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+    
+    // 保存当前会话
+    static saveSession(session) {
+        try {
+            localStorage.setItem(this.KEYS.SESSION, JSON.stringify(session));
+            return true;
+        } catch (e) {
+            console.error('保存会话失败:', e);
+            return false;
+        }
+    }
+    
+    // 清除会话
+    static clearSession() {
+        try {
+            localStorage.removeItem(this.KEYS.SESSION);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+    
+    // 快速获取/保存设置（供游戏使用）
+    static get gameSettings() {
+        return this.getSettings();
+    }
+    
+    static set gameSettings(settings) {
+        return this.saveSettings(settings);
+    }
+}
