@@ -1,0 +1,200 @@
+/* DialogChoice.css */
+.dialog-choice {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #834d9b 0%, #d04ed6 100%);
+  border-radius: 16px;
+  color: white;
+}
+
+.dialog-choice h2 {
+  margin: 0;
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.character-tag {
+  padding: 4px 12px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.dialog-history {
+  margin-bottom: 10px;
+}
+
+.btn-toggle-history {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  cursor: pointer;
+}
+
+.btn-toggle-history:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.dialog-content {
+  background: rgba(255,255,255,0.15);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.speaker-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.speaker-avatar {
+  font-size: 32px;
+}
+
+.speaker-name {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.speaker-expression {
+  font-size: 20px;
+}
+
+.dialog-text {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.option-button {
+  padding: 15px 20px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.option-button:hover:not(:disabled) {
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.5);
+}
+
+.option-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.option-button .requirement {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.effect-display {
+  padding: 15px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  animation: fadeIn 0.3s;
+}
+
+.effect-type {
+  font-weight: bold;
+  margin-right: 10px;
+  text-transform: uppercase;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.completion-section {
+  text-align: center;
+  background: rgba(255,255,255,0.15);
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.completion-section h3 {
+  margin-top: 0;
+}
+
+.rewards {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.exp-reward {
+  padding: 8px 16px;
+  background: #9c27b0;
+  border-radius: 20px;
+  font-weight: bold;
+}
+
+.btn-restart {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 8px;
+  background: #2196f3;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.btn-restart:hover {
+  background: #1976d2;
+}
+
+.preset-dialogs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.2);
+}
+
+.preset-dialogs span {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.preset-dialogs button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.preset-dialogs button:hover {
+  background: rgba(255,255,255,0.3);
+}
