@@ -1,0 +1,375 @@
+/* BossBattle.css */
+.boss-battle {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  color: white;
+}
+
+.boss-battle h2 {
+  margin: 0;
+}
+
+.battle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.phase-indicator {
+  padding: 6px 16px;
+  background: #e94560;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.boss-area {
+  background: rgba(255,255,255,0.1);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.boss-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.boss-avatar {
+  font-size: 72px;
+  position: relative;
+}
+
+.attack-effect {
+  position: absolute;
+  top: 0;
+  right: -20px;
+  font-size: 36px;
+  animation: attackShake 0.5s infinite;
+}
+
+@keyframes attackShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.victory-effect {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  font-size: 36px;
+  animation: victoryPop 1s infinite;
+}
+
+@keyframes victoryPop {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.boss-name {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.boss-title {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.health-bar-container, .suspicion-bar-container {
+  margin-bottom: 15px;
+}
+
+.health-bar-label, .suspicion-bar-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.health-bar, .suspicion-bar {
+  height: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.1);
+}
+
+.health-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #e94560, #ff6b6b);
+  transition: width 0.3s;
+}
+
+.suspicion-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd700, #ff9800);
+  transition: width 0.3s;
+}
+
+.phase-description {
+  text-align: center;
+  font-style: italic;
+  opacity: 0.9;
+  padding: 15px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+}
+
+.battle-arena {
+  height: 100px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.player-attack-effect, .boss-attack-effect {
+  font-size: 24px;
+  font-weight: bold;
+  animation: attackText 0.5s forwards;
+}
+
+.player-attack-effect {
+  color: #4fc3f7;
+}
+
+.boss-attack-effect {
+  color: #ff5252;
+}
+
+@keyframes attackText {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+.player-area {
+  background: rgba(255,255,255,0.1);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.player-avatar {
+  font-size: 48px;
+}
+
+.player-name {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.player-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stat-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stat-bar span:first-child {
+  width: 70px;
+  font-size: 14px;
+}
+
+.stat-bar span:last-child {
+  width: 70px;
+  text-align: right;
+  font-size: 12px;
+}
+
+.mini-bar {
+  flex: 1;
+  height: 16px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.mini-fill {
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.mini-fill.health { background: #e94560; }
+.mini-fill.psychic { background: #9c27b0; }
+.mini-fill.doubt { background: #607d8b; }
+
+.defend-indicator {
+  text-align: center;
+  padding: 10px;
+  background: #2196f3;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+.actions-section {
+  margin-bottom: 20px;
+}
+
+.actions-section h4 {
+  margin: 0 0 15px 0;
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.action-btn {
+  padding: 15px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.action-btn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.2);
+  transform: translateY(-2px);
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-btn.attack { border-color: #e94560; }
+.action-btn.defend { border-color: #2196f3; }
+.action-btn.special { border-color: #ffd700; }
+.action-btn.psychic { border-color: #9c27b0; }
+
+.action-name {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.action-desc {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.action-cost {
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.turn-indicator {
+  text-align: center;
+  padding: 15px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.battle-log {
+  background: rgba(0,0,0,0.3);
+  padding: 15px;
+  border-radius: 12px;
+}
+
+.battle-log h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.log-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.log-entry {
+  font-size: 13px;
+  padding: 5px 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px;
+}
+
+.victory-screen, .defeat-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.victory-screen h2 {
+  font-size: 48px;
+  color: #ffd700;
+  margin-bottom: 10px;
+}
+
+.defeat-screen h2 {
+  font-size: 48px;
+  color: #f44336;
+  margin-bottom: 10px;
+}
+
+.victory-screen p, .defeat-screen p {
+  font-size: 18px;
+  opacity: 0.8;
+}
+
+.victory-screen .rewards, .defeat-screen .rewards {
+  display: flex;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.victory-screen span, .defeat-screen span {
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-weight: bold;
+}
+
+.victory-screen span { background: #4caf50; }
+.defeat-screen span { background: #607d8b; }
+
+.victory-screen button, .defeat-screen button {
+  padding: 15px 40px;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  background: #2196f3;
+  color: white;
+  cursor: pointer;
+}
