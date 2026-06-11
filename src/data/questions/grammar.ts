@@ -1,29 +1,36 @@
 import { Question, QuestionType, ExamType } from '../../types';
 
 /**
- * 语法选择题 - L1-L2关卡用
+ * 语法填空题 - L1关卡用
  * 难度：1-3级（简单到中等）
+ * 
+ * PRD v3.1 规范：
+ * - 改为语篇形式（非单句）
+ * - 综合时态（一般现在时/进行时/完成时）
+ * - 基于情境故事出题
+ * - 10道题
  */
 export const QUESTIONS: Question[] = [
   // ============================================================
-  // 一般现在时选择题
+  // 语法填空题 - 玛蒂尔达的一天（语篇形式）
+  // 综合时态：一般现在时、现在进行时、现在完成时
   // ============================================================
   {
     id: 'g1-001',
     type: QuestionType.GRAMMAR_CHOICE,
     difficulty: 1,
     examTypes: [ExamType.ZHONGKAO],
-    stem: 'She ___ English every day.',
+    stem: '阅读下面的短文，用括号中所给词的适当形式填空。\n\nMatilda __1__ (be) a smart girl. She __2__ (love) reading every day. Look! She __3__ (sit) by the window and __4__ (read) a book now. She __5__ (read) many books since last year. Her parents __6__ (be) proud of her.\n\n【1】',
     options: [
-      'A. study',
-      'B. studies',
-      'C. studying',
-      'D. studied'
+      'A. is',
+      'B. are',
+      'C. am',
+      'D. be'
     ],
-    correctAnswer: 'B',
-    explanation: '第三人称单数She后面，动词加-s。study→studies。',
-    chineseExplanation: '一般现在时中，第三人称单数（he/she/it）谓语动词加-s或-es',
-    relatedWords: ['w122', 'w055'],
+    correctAnswer: 'A',
+    explanation: 'Matilda是第三人称单数，用is。',
+    chineseExplanation: '第三人称单数用is',
+    relatedWords: ['w001'],
     relatedGrammar: ['tense-present-simple'],
     usageCount: 0
   },
@@ -32,17 +39,17 @@ export const QUESTIONS: Question[] = [
     type: QuestionType.GRAMMAR_CHOICE,
     difficulty: 1,
     examTypes: [ExamType.ZHONGKAO],
-    stem: 'My mother ___ breakfast at 7:00 every morning.',
+    stem: '阅读下面的短文，用括号中所给词的适当形式填空。\n\nMatilda __1__ (be) a smart girl. She __2__ (love) reading every day. Look! She __3__ (sit) by the window and __4__ (read) a book now. She __5__ (read) many books since last year. Her parents __6__ (be) proud of her.\n\n【2】',
     options: [
-      'A. have',
-      'B. has',
-      'C. having',
-      'D. to have'
+      'A. love',
+      'B. loves',
+      'C. loved',
+      'D. loving'
     ],
     correctAnswer: 'B',
-    explanation: '第三人称单数My mother，动词用has。',
-    chineseExplanation: 'have的第三人称单数形式是has',
-    relatedWords: ['w002', 'w131'],
+    explanation: 'She是第三人称单数，动词加-s。',
+    chineseExplanation: '第三人称单数一般现在时动词加-s',
+    relatedWords: ['w126'],
     relatedGrammar: ['tense-present-simple'],
     usageCount: 0
   },
@@ -51,39 +58,36 @@ export const QUESTIONS: Question[] = [
     type: QuestionType.GRAMMAR_CHOICE,
     difficulty: 2,
     examTypes: [ExamType.ZHONGKAO],
-    stem: 'He ___ like coffee.',
+    stem: '阅读下面的短文，用括号中所给词的适当形式填空。\n\nMatilda __1__ (be) a smart girl. She __2__ (love) reading every day. Look! She __3__ (sit) by the window and __4__ (read) a book now. She __5__ (read) many books since last year. Her parents __6__ (be) proud of her.\n\n【3】',
     options: [
-      'A. don\'t',
-      'B. doesn\'t',
-      'C. not',
-      'D. no'
+      'A. sit',
+      'B. sits',
+      'C. sitting',
+      'D. is sitting'
     ],
-    correctAnswer: 'B',
-    explanation: '第三人称单数否定用doesn\'t，后接动词原形。',
-    chineseExplanation: '否定句：第三人称单数用doesn\'t + 动词原形',
-    relatedWords: ['w127'],
-    relatedGrammar: ['tense-present-simple'],
+    correctAnswer: 'D',
+    explanation: 'Look!提示动作正在进行，用现在进行时。',
+    chineseExplanation: 'Look!提示用现在进行时',
+    relatedWords: ['w033'],
+    relatedGrammar: ['tense-present-continuous'],
     usageCount: 0
   },
-  // ============================================================
-  // 现在进行时选择题
-  // ============================================================
   {
     id: 'g1-004',
     type: QuestionType.GRAMMAR_CHOICE,
-    difficulty: 1,
+    difficulty: 2,
     examTypes: [ExamType.ZHONGKAO],
-    stem: 'Look! The children ___ in the park.',
+    stem: '阅读下面的短文，用括号中所给词的适当形式填空。\n\nMatilda __1__ (be) a smart girl. She __2__ (love) reading every day. Look! She __3__ (sit) by the window and __4__ (read) a book now. She __5__ (read) many books since last year. Her parents __6__ (be) proud of her.\n\n【4】',
     options: [
-      'A. play',
-      'B. plays',
-      'C. playing',
-      'D. are playing'
+      'A. read',
+      'B. reads',
+      'C. reading',
+      'D. is reading'
     ],
     correctAnswer: 'D',
-    explanation: 'Look提示动作正在进行，用现在进行时are playing。',
-    chineseExplanation: '现在进行时构成：be(am/is/are) + 动词-ing',
-    relatedWords: ['w033', 'w043'],
+    explanation: '现在进行时结构：be + 动词-ing。',
+    chineseExplanation: '现在进行时表示正在进行的动作',
+    relatedWords: ['w121'],
     relatedGrammar: ['tense-present-continuous'],
     usageCount: 0
   },
@@ -92,18 +96,18 @@ export const QUESTIONS: Question[] = [
     type: QuestionType.GRAMMAR_CHOICE,
     difficulty: 2,
     examTypes: [ExamType.ZHONGKAO],
-    stem: 'She ___ a letter now.',
+    stem: '阅读下面的短文，用括号中所给词的适当形式填空。\n\nMatilda __1__ (be) a smart girl. She __2__ (love) reading every day. Look! She __3__ (sit) by the window and __4__ (read) a book now. She __5__ (read) many books since last year. Her parents __6__ (be) proud of her.\n\n【5】',
     options: [
-      'A. write',
-      'B. writes',
-      'C. writing',
-      'D. is writing'
+      'A. read',
+      'B. reads',
+      'C. has read',
+      'D. reading'
     ],
-    correctAnswer: 'D',
-    explanation: 'now提示动作正在进行，用现在进行时is writing。',
-    chineseExplanation: 'now是现在进行时的标志性时间状语',
-    relatedWords: ['w040'],
-    relatedGrammar: ['tense-present-continuous'],
+    correctAnswer: 'C',
+    explanation: 'since last year提示现在完成时。',
+    chineseExplanation: 'since + 时间点用现在完成时',
+    relatedWords: ['w121'],
+    relatedGrammar: ['tense-present-perfect'],
     usageCount: 0
   },
   {
@@ -111,59 +115,59 @@ export const QUESTIONS: Question[] = [
     type: QuestionType.GRAMMAR_CHOICE,
     difficulty: 2,
     examTypes: [ExamType.ZHONGKAO],
-    stem: 'What ___ he ___? He is reading a book.',
+    stem: '阅读下面的短文，用括号中所给词的适当形式填空。\n\nMatilda __1__ (be) a smart girl. She __2__ (love) reading every day. Look! She __3__ (sit) by the window and __4__ (read) a book now. She __5__ (read) many books since last year. Her parents __6__ (be) proud of her.\n\n【6】',
     options: [
-      'A. is, doing',
-      'B. are, doing',
-      'C. do, do',
-      'D. does, do'
+      'A. is',
+      'B. are',
+      'C. am',
+      'D. be'
     ],
-    correctAnswer: 'A',
-    explanation: '回答是He is reading，用What is he doing?',
-    chineseExplanation: '现在进行时提问用What is + 主语 + doing?',
-    relatedWords: ['w040'],
-    relatedGrammar: ['tense-present-continuous'],
+    correctAnswer: 'B',
+    explanation: 'parents是复数，用are。',
+    chineseExplanation: '复数名词用are',
+    relatedWords: ['w002'],
+    relatedGrammar: ['tense-present-simple'],
     usageCount: 0
   },
   // ============================================================
-  // 现在完成时选择题
+  // 语法填空题 - 综合时态练习
   // ============================================================
   {
     id: 'g1-007',
     type: QuestionType.GRAMMAR_CHOICE,
-    difficulty: 2,
+    difficulty: 3,
     examTypes: [ExamType.ZHONGKAO],
-    stem: 'I ___ my homework already.',
+    stem: '用括号中所给词的适当形式填空。\n\nMatilda __1__ (study) English for three years. She __2__ (start) to learn it in 2023. She __3__ (read) English books every day. So far, she __4__ (finish) more than 50 books. She __5__ (be) happy with her progress.\n\n【7】- She __1__ (study) English for three years.',
     options: [
-      'A. finish',
-      'B. finishes',
-      'C. finished',
-      'D. have finished'
+      'A. studies',
+      'B. studied',
+      'C. has studied',
+      'D. study'
     ],
-    correctAnswer: 'D',
-    explanation: 'already用于现在完成时，表示已经完成。',
-    chineseExplanation: '现在完成时：have/has + 过去分词',
-    relatedWords: ['w129'],
+    correctAnswer: 'C',
+    explanation: 'for three years表示一段时间，用现在完成时。',
+    chineseExplanation: 'for + 时间段用现在完成时',
+    relatedWords: ['w122'],
     relatedGrammar: ['tense-present-perfect'],
     usageCount: 0
   },
   {
     id: 'g1-008',
     type: QuestionType.GRAMMAR_CHOICE,
-    difficulty: 2,
+    difficulty: 3,
     examTypes: [ExamType.ZHONGKAO],
-    stem: 'She ___ in this school for five years.',
+    stem: '用括号中所给词的适当形式填空。\n\nMatilda __1__ (study) English for three years. She __2__ (start) to learn it in 2023. She __3__ (read) English books every day. So far, she __4__ (finish) more than 50 books. She __5__ (be) happy with her progress.\n\n【8】- She __2__ (start) to learn it in 2023.',
     options: [
-      'A. teaches',
-      'B. taught',
-      'C. is teaching',
-      'D. has taught'
+      'A. starts',
+      'B. started',
+      'C. starting',
+      'D. has started'
     ],
-    correctAnswer: 'D',
-    explanation: 'for five years表示一段时间，用现在完成时has taught。',
-    chineseExplanation: '现在完成时可以表示过去开始的动作持续到现在',
-    relatedWords: ['w055'],
-    relatedGrammar: ['tense-present-perfect'],
+    correctAnswer: 'B',
+    explanation: 'in 2023是过去的时间，用一般过去时。',
+    chineseExplanation: 'in + 过去年份用一般过去时',
+    relatedWords: ['w122'],
+    relatedGrammar: ['tense-past-simple'],
     usageCount: 0
   },
   {
@@ -171,236 +175,37 @@ export const QUESTIONS: Question[] = [
     type: QuestionType.GRAMMAR_CHOICE,
     difficulty: 2,
     examTypes: [ExamType.ZHONGKAO],
-    stem: 'Have you ___ to Beijing?',
+    stem: '用括号中所给词的适当形式填空。\n\nMatilda __1__ (study) English for three years. She __2__ (start) to learn it in 2023. She __3__ (read) English books every day. So far, she __4__ (finish) more than 50 books. She __5__ (be) happy with her progress.\n\n【9】- So far, she __4__ (finish) more than 50 books.',
     options: [
-      'A. be',
-      'B. been',
-      'C. being',
-      'D. was'
+      'A. finishes',
+      'B. finished',
+      'C. has finished',
+      'D. finish'
     ],
-    correctAnswer: 'B',
-    explanation: '现在完成时中been是go的过去分词。Have you been to表示"去过某地"。',
-    chineseExplanation: 'have been to 表示曾经去过某地（已回来）',
-    relatedWords: ['w007'],
+    correctAnswer: 'C',
+    explanation: 'So far是现在完成时的标志。',
+    chineseExplanation: 'So far/yet/already是现在完成时标志',
+    relatedWords: ['w129'],
     relatedGrammar: ['tense-present-perfect'],
     usageCount: 0
   },
-  // ============================================================
-  // 时态综合选择题
-  // ============================================================
   {
     id: 'g1-010',
     type: QuestionType.GRAMMAR_CHOICE,
-    difficulty: 3,
-    examTypes: [ExamType.ZHONGKAO],
-    stem: 'I ___ a movie yesterday.',
-    options: [
-      'A. watch',
-      'B. watches',
-      'C. watched',
-      'D. am watching'
-    ],
-    correctAnswer: 'C',
-    explanation: 'yesterday是过去式的时间标志，用watched。',
-    chineseExplanation: '一般过去时表示过去发生的动作，yesterday是标志词',
-    relatedWords: ['w033'],
-    relatedGrammar: ['tense-present-simple'],
-    usageCount: 0
-  },
-  // ============================================================
-  // 定语从句选择题 - L2
-  // ============================================================
-  {
-    id: 'g2-001',
-    type: QuestionType.GRAMMAR_CHOICE,
     difficulty: 2,
     examTypes: [ExamType.ZHONGKAO],
-    stem: 'The girl ___ is singing is my sister.',
+    stem: '用括号中所给词的适当形式填空。\n\nMatilda __1__ (study) English for three years. She __2__ (start) to learn it in 2023. She __3__ (read) English books every day. So far, she __4__ (finish) more than 50 books. She __5__ (be) happy with her progress.\n\n【10】- She __5__ (be) happy with her progress.',
     options: [
-      'A. who',
-      'B. which',
-      'C. that',
-      'D. A and C'
-    ],
-    correctAnswer: 'D',
-    explanation: '指人，用who或that。',
-    chineseExplanation: '定语从句中who和that都可以指人',
-    relatedWords: ['w118', 'w119'],
-    relatedGrammar: ['attributive-clause-basic'],
-    usageCount: 0
-  },
-  {
-    id: 'g2-002',
-    type: QuestionType.GRAMMAR_CHOICE,
-    difficulty: 2,
-    examTypes: [ExamType.ZHONGKAO],
-    stem: 'I like the book ___ you gave me.',
-    options: [
-      'A. who',
-      'B. which',
-      'C. whose',
-      'D. where'
-    ],
-    correctAnswer: 'B',
-    explanation: '指物，用which。you gave me是定语从句，修饰the book。',
-    chineseExplanation: '定语从句中which指物，在从句中作gave的宾语',
-    relatedWords: ['w120', 'w016'],
-    relatedGrammar: ['attributive-clause-basic'],
-    usageCount: 0
-  },
-  {
-    id: 'g2-003',
-    type: QuestionType.GRAMMAR_CHOICE,
-    difficulty: 3,
-    examTypes: [ExamType.ZHONGKAO],
-    stem: 'This is the reason ___ he was late.',
-    options: [
-      'A. why',
-      'B. because',
-      'C. when',
-      'D. where'
+      'A. is',
+      'B. are',
+      'C. was',
+      'D. be'
     ],
     correctAnswer: 'A',
-    explanation: 'the reason后用why引导定语从句。',
-    chineseExplanation: 'reason后用why引导定语从句，这是固定搭配',
-    relatedWords: ['w101'],
-    relatedGrammar: ['attributive-clause-basic'],
-    usageCount: 0
-  },
-  {
-    id: 'g2-004',
-    type: QuestionType.GRAMMAR_CHOICE,
-    difficulty: 3,
-    examTypes: [ExamType.ZHONGKAO],
-    stem: 'The school ___ I studied is very famous.',
-    options: [
-      'A. who',
-      'B. which',
-      'C. that',
-      'D. where'
-    ],
-    correctAnswer: 'D',
-    explanation: '在从句中作地点状语，用where。',
-    chineseExplanation: 'where在定语从句中作地点状语',
-    relatedWords: ['w051'],
-    relatedGrammar: ['attributive-clause-basic'],
-    usageCount: 0
-  },
-  {
-    id: 'g2-005',
-    type: QuestionType.GRAMMAR_CHOICE,
-    difficulty: 3,
-    examTypes: [ExamType.ZHONGKAO],
-    stem: 'The student ___ name is Tom is very clever.',
-    options: [
-      'A. who',
-      'B. which',
-      'C. whose',
-      'D. that'
-    ],
-    correctAnswer: 'C',
-    explanation: 'whose表示所有格，表示"那个学生的名字"。',
-    chineseExplanation: 'whose表示所有关系，相当于of whom',
-    relatedWords: ['w118'],
-    relatedGrammar: ['attributive-clause-basic'],
-    usageCount: 0
-  },
-  // ============================================================
-  // 更多时态选择题
-  // ============================================================
-  {
-    id: 'g3-001',
-    type: QuestionType.GRAMMAR_CHOICE,
-    difficulty: 1,
-    examTypes: [ExamType.ZHONGKAO],
-    stem: '___ you like apples?',
-    options: [
-      'A. Do',
-      'B. Does',
-      'C. Are',
-      'D. Is'
-    ],
-    correctAnswer: 'A',
-    explanation: '一般疑问句中，you用Do。',
-    chineseExplanation: '一般现在时疑问句：第一人称用Do you...',
-    relatedWords: ['w126'],
+    explanation: 'She是第三人称单数，用is。',
+    chineseExplanation: '第三人称单数用is',
+    relatedWords: ['w001'],
     relatedGrammar: ['tense-present-simple'],
-    usageCount: 0
-  },
-  {
-    id: 'g3-002',
-    type: QuestionType.GRAMMAR_CHOICE,
-    difficulty: 2,
-    examTypes: [ExamType.ZHONGKAO],
-    stem: 'He usually ___ to school on foot.',
-    options: [
-      'A. go',
-      'B. goes',
-      'C. going',
-      'D. to go'
-    ],
-    correctAnswer: 'B',
-    explanation: 'usually是一般现在时的标志词，主语是第三人称单数，用goes。',
-    chineseExplanation: 'usually/always/often等频率副词与一般现在时连用',
-    relatedWords: ['w007', 'w051'],
-    relatedGrammar: ['tense-present-simple'],
-    usageCount: 0
-  },
-  {
-    id: 'g3-003',
-    type: QuestionType.GRAMMAR_CHOICE,
-    difficulty: 2,
-    examTypes: [ExamType.ZHONGKAO],
-    stem: 'I ___ English since 2020.',
-    options: [
-      'A. learn',
-      'B. learns',
-      'C. learned',
-      'D. have learned'
-    ],
-    correctAnswer: 'D',
-    explanation: 'since表示"自从"，用于现在完成时。',
-    chineseExplanation: 'since + 时间点，用于现在完成时',
-    relatedWords: ['w122'],
-    relatedGrammar: ['tense-present-perfect'],
-    usageCount: 0
-  },
-  {
-    id: 'g3-004',
-    type: QuestionType.GRAMMAR_CHOICE,
-    difficulty: 1,
-    examTypes: [ExamType.ZHONGKAO],
-    stem: 'Listen! Someone ___ in the next room.',
-    options: [
-      'A. sing',
-      'B. sings',
-      'C. singing',
-      'D. is singing'
-    ],
-    correctAnswer: 'D',
-    explanation: 'Listen是现在进行时的标志词，表示正在发生。',
-    chineseExplanation: 'Listen!/Look!等提示词提示现在进行时',
-    relatedWords: ['w032'],
-    relatedGrammar: ['tense-present-continuous'],
-    usageCount: 0
-  },
-  {
-    id: 'g3-005',
-    type: QuestionType.GRAMMAR_CHOICE,
-    difficulty: 3,
-    examTypes: [ExamType.ZHONGKAO],
-    stem: 'My mother ___ for three hours.',
-    options: [
-      'A. cooks',
-      'B. cooked',
-      'C. is cooking',
-      'D. has cooked'
-    ],
-    correctAnswer: 'D',
-    explanation: 'for three hours表示一段时间，用现在完成时has cooked。',
-    chineseExplanation: 'for + 时间段用于现在完成时',
-    relatedWords: ['w132'],
-    relatedGrammar: ['tense-present-perfect'],
     usageCount: 0
   }
 ];
