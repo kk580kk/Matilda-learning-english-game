@@ -401,7 +401,7 @@ const AssessmentGame = () => {
           >
             {/* 短文阅读区域 */}
             <div style={{ 
-              background: '#f8f9fa', 
+              background: '#ffffff', 
               padding: '20px', 
               borderRadius: '8px',
               marginBottom: '20px',
@@ -409,9 +409,11 @@ const AssessmentGame = () => {
               overflowY: 'auto',
               fontFamily: 'Georgia, serif',
               lineHeight: '1.8',
-              fontSize: '1rem'
+              fontSize: '1rem',
+              color: '#1a1a1a',
+              border: '2px solid #e9ecef'
             }}>
-              <h4 style={{ marginBottom: '12px', color: '#495057' }}>📖 阅读短文</h4>
+              <h4 style={{ marginBottom: '12px', color: '#212529', fontWeight: 'bold' }}>📖 阅读短文</h4>
               {readingPassage}
               {(readingPassage.includes('Dear') || readingPassage.includes('— Tom')) && (
                 <div style={{ marginTop: '12px', fontStyle: 'italic', color: '#6c757d' }}>
