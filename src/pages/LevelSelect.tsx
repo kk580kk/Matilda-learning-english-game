@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLevelStore } from '../store';
-import { LEVELS } from '../data/levels';
+import { LEVEL_CONFIGS } from '../data/levels/config';
 import { LevelStatus } from '../types';
 
 const LevelSelect = () => {
@@ -50,7 +50,7 @@ const LevelSelect = () => {
 
       {/* Level Grid */}
       <div className="level-grid">
-        {LEVELS.map((level, index) => {
+        {LEVEL_CONFIGS.map((level, index) => {
           const status = getLevelStatus(level.levelId);
           const progress = levelProgress[level.levelId];
           const isLocked = status === 'locked';

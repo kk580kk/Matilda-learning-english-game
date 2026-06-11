@@ -2,9 +2,39 @@ import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLevelStore, useAchievementStore } from '../../store';
-import { LEVELS } from '../../data/levels';
+import { getLevelConfig, LEVEL_CONFIGS } from '../../data/levels/config';
+import { LearningPhase } from '../../types';
 
-const LEVEL_DATA = LEVELS[1]; // L2
+// Get L2 config - fallback to second level if not found
+const LEVEL_CONFIG = getLevelConfig('L2') || LEVEL_CONFIGS[1];
+
+// Generate objectives from learning flow
+const getObjectives = () => {
+  const phases = LEVEL_CONFIG.learningFlow;
+  const objectives: string[] = [];
+  
+  phases.forEach(phase => {
+    switch (phase.phase) {
+      case LearningPhase.STORY_INTRO:
+        objectives.push('了解故事背景');
+        break;
+      case LearningPhase.SITUATION_INPUT:
+        objectives.push('学习重点词汇和语法');
+        break;
+      case LearningPhase.FEYNMAN_OUTPUT:
+        objectives.push('通过费曼学习法输出知识');
+        break;
+      case LearningPhase.STORY_PROGRESS:
+        objectives.push('推进剧情发展');
+        break;
+      case LearningPhase.ASSESSMENT:
+        objectives.push('完成测评挑战');
+        break;
+    }
+  });
+  
+  return objectives;
+};
 
 interface HiddenItem {
   id: string;
@@ -118,18 +148,25 @@ const HiddenObjectGame = () => {
           className="text-center mt-8"
         >
           <div style={{ fontSize: '4rem', marginBottom: '16px' }}>🔍🏠</div>
-          <h1>{LEVEL_DATA.title}</h1>
-          <p style={{ color: '#b8c1ec', marginTop: '8px' }}>{LEVEL_DATA.titleEn}</p>
+          <h1>{LEVEL_CONFIG.title}</h1>
+          <p style={{ color: '#b8c1ec', marginTop: '8px' }}>{LEVEL_CONFIG.titleEn}</p>
           
           <div className="card mt-8" style={{ maxWidth: '600px', margin: '32px auto', textAlign: 'left' }}>
             <h3 className="mb-4">📖 故事背景</h3>
-            <p style={{ lineHeight: '1.8' }}>{LEVEL_DATA.storyBackground}</p>
+            <p style={{ lineHeight: '1.8' }}>{LEVEL_CONFIG.storyBackground}</p>
             
-            <h3 className="mt-8 mb-4">🎯 游戏目标</h3>
+            <h3 className="mt-8 mb-4">🎯 五步学习循环</h3>
             <ul style={{ paddingLeft: '20px', lineHeight: '2' }}>
-              {LEVEL_DATA.objectives.map((obj, i) => (
+              {getObjectives().map((obj, i) => (
                 <li key={i}>{obj}</li>
               ))}
+            </ul>
+            
+            <h3 className="mt-8 mb-4">📚 中考目标</h3>
+            <ul style={{ paddingLeft: '20px', lineHeight: '2' }}>
+              <li>目标考试: 中考 (Zhōngkǎo)</li>
+              <li>CEFR等级: {LEVEL_CONFIG.cefrLevel}</li>
+              <li>难度: {'★'.repeat(LEVEL_CONFIG.difficulty)}{'☆'.repeat(5 - LEVEL_CONFIG.difficulty)}</li>
             </ul>
             
             <h3 className="mt-8 mb-4">🔍 寻找物品</h3>

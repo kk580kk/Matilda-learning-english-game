@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { LevelProgress, LevelStatus, LevelData } from '../types';
-import { LEVELS } from '../data/levels';
+import { LevelProgress, LevelStatus, LevelConfig } from '../types';
+import { LEVEL_CONFIGS, getNextLevelId } from '../data/levels/config';
 
 interface LevelState {
-  levels: Record<string, LevelData>;
+  levels: Record<string, LevelConfig>;
   currentLevelId: string | null;
   levelProgress: Record<string, LevelProgress>;
   
@@ -18,7 +18,7 @@ interface LevelState {
 
 const getInitialProgress = (): Record<string, LevelProgress> => {
   const progress: Record<string, LevelProgress> = {};
-  LEVELS.forEach(level => {
+  LEVEL_CONFIGS.forEach(level => {
     progress[level.levelId] = {
       levelId: level.levelId,
       status: level.levelId === 'L1' ? 'available' : 'locked',
@@ -32,10 +32,10 @@ const getInitialProgress = (): Record<string, LevelProgress> => {
 export const useLevelStore = create<LevelState>()(
   persist(
     (set, get) => ({
-      levels: LEVELS.reduce((acc, level) => {
+      levels: LEVEL_CONFIGS.reduce((acc, level) => {
         acc[level.levelId] = level;
         return acc;
-      }, {} as Record<string, LevelData>),
+      }, {} as Record<string, LevelConfig>),
       currentLevelId: null,
       levelProgress: getInitialProgress(),
       
@@ -55,9 +55,9 @@ export const useLevelStore = create<LevelState>()(
         });
         
         // Unlock next level
-        const level = get().levels[levelId];
-        if (level?.nextLevel) {
-          get().updateProgress(level.nextLevel, { status: 'available' });
+        const nextLevelId = getNextLevelId(levelId);
+        if (nextLevelId) {
+          get().updateProgress(nextLevelId, { status: 'available' });
         }
       },
       
