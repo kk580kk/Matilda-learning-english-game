@@ -78,6 +78,34 @@ const AssessmentGame = () => {
   const [score, setScore] = useState(0);
   const [readingScore, setReadingScore] = useState(0);
   const [grammarScore, setGrammarScore] = useState(0);
+  const [readingPassage, setReadingPassage] = useState('');
+
+  // 从stem中提取阅读短文
+  const extractPassage = (stem: string): string => {
+    if (!stem) return '';
+    
+    // 检查是否包含完整短文（第一题有「阅读下面的短文」）
+    if (stem.includes('阅读下面的短文')) {
+      // 去掉标题，找到短文结束位置（到【细节理解】或【推理判断】或【主旨大意】之前）
+      const passageMatch = stem.replace(/阅读下面的短文，选择正确答案。\n\n/, '');
+      
+      // 找到题目标记的位置
+      const questionMarkers = ['【细节理解】', '【推理判断】', '【主旨大意】', '【词义猜测】', '【观点态度】'];
+      let passageEnd = passageMatch.length;
+      
+      for (const marker of questionMarkers) {
+        const markerIndex = passageMatch.indexOf(marker);
+        if (markerIndex !== -1 && markerIndex < passageEnd) {
+          passageEnd = markerIndex;
+          break;
+        }
+      }
+      
+      return passageMatch.substring(0, passageEnd).trim();
+    }
+    
+    return '';
+  };
 
   // 初始化题目
   const initQuestions = useCallback(() => {
@@ -86,6 +114,10 @@ const AssessmentGame = () => {
       q.difficulty! <= 2 && q.examTypes?.includes(ExamType.ZHONGKAO)
     );
     const randomReading = getRandomQuestions(5) || allReading.slice(0, 5);
+    
+    // 从第一道题提取短文
+    const passage = extractPassage(randomReading[0]?.stem || '');
+    setReadingPassage(passage);
     
     setReadingQuestions(randomReading.map(q => ({
       id: q.id,
@@ -330,7 +362,6 @@ const AssessmentGame = () => {
   // ========================================
   if (gameState === 'reading') {
     const currentQ = readingQuestions[currentReadingIndex];
-    const passage = currentQ?.stem?.replace(/阅读下面的短文，选择正确答案。\n\n/, '').split('\n').slice(0, 15).join('\n') || '';
     
     return (
       <div className="game-container">
@@ -381,8 +412,8 @@ const AssessmentGame = () => {
               fontSize: '1rem'
             }}>
               <h4 style={{ marginBottom: '12px', color: '#495057' }}>📖 阅读短文</h4>
-              {passage}
-              {currentQ?.stem?.includes('Dear Mom') && (
+              {readingPassage}
+              {(readingPassage.includes('Dear') || readingPassage.includes('— Tom')) && (
                 <div style={{ marginTop: '12px', fontStyle: 'italic', color: '#6c757d' }}>
                   — Tom
                 </div>
