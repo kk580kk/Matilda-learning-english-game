@@ -492,17 +492,19 @@ const AssessmentGame = () => {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 style={{
-                  background: currentQ?.isCorrect ? '#e7f5ff' : '#fff5f5',
+                  background: currentQ?.isCorrect ? '#d4edda' : '#f8d7da',
+                  border: currentQ?.isCorrect ? '2px solid #28a745' : '2px solid #dc3545',
                   padding: '16px',
                   borderRadius: '8px',
-                  marginTop: '16px'
+                  marginTop: '16px',
+                  color: '#1a1a1a'
                 }}
               >
-                <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-                  {currentQ?.isCorrect ? '✅ 回答正确！' : '❌ 回答错误'}
+                <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '8px' }}>
+                  {currentQ?.isCorrect ? '✅ 回答正确！' : '❌ 回答错误，正确答案是 ' + currentQ?.correctAnswer}
                 </div>
-                <div style={{ marginBottom: '8px' }}>
-                  <strong>解析：</strong>{currentQ?.chineseExplanation || currentQ?.explanation}
+                <div style={{ marginBottom: '12px', fontSize: '1rem' }}>
+                  <strong>📝 解析：</strong>{currentQ?.chineseExplanation || currentQ?.explanation}
                 </div>
                 <motion.button
                   className="btn btn-primary"
