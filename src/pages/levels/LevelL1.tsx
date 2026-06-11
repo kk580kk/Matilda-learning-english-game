@@ -7,7 +7,8 @@ import { LearningPhase, ExamType } from '../../types';
 import { 
   READING_QUESTIONS, 
   GRAMMAR_QUESTIONS, 
-  getRandomQuestions 
+  getRandomQuestions,
+  getReadingPassage
 } from '../../data/questions';
 
 // Get L1 config - fallback to first level if not found
@@ -80,33 +81,6 @@ const AssessmentGame = () => {
   const [grammarScore, setGrammarScore] = useState(0);
   const [readingPassage, setReadingPassage] = useState('');
 
-  // 从stem中提取阅读短文
-  const extractPassage = (stem: string): string => {
-    if (!stem) return '';
-    
-    // 检查是否包含完整短文（第一题有「阅读下面的短文」）
-    if (stem.includes('阅读下面的短文')) {
-      // 去掉标题，找到短文结束位置（到【细节理解】或【推理判断】或【主旨大意】之前）
-      const passageMatch = stem.replace(/阅读下面的短文，选择正确答案。\n\n/, '');
-      
-      // 找到题目标记的位置
-      const questionMarkers = ['【细节理解】', '【推理判断】', '【主旨大意】', '【词义猜测】', '【观点态度】'];
-      let passageEnd = passageMatch.length;
-      
-      for (const marker of questionMarkers) {
-        const markerIndex = passageMatch.indexOf(marker);
-        if (markerIndex !== -1 && markerIndex < passageEnd) {
-          passageEnd = markerIndex;
-          break;
-        }
-      }
-      
-      return passageMatch.substring(0, passageEnd).trim();
-    }
-    
-    return '';
-  };
-
   // 初始化题目
   const initQuestions = useCallback(() => {
     // 随机选择5道阅读理解题（难度1-2级）
@@ -115,9 +89,8 @@ const AssessmentGame = () => {
     );
     const randomReading = getRandomQuestions(5) || allReading.slice(0, 5);
     
-    // 从第一道题提取短文
-    const passage = extractPassage(randomReading[0]?.stem || '');
-    setReadingPassage(passage);
+    // 使用固定的阅读短文（PRD v3.2：文章固定显示在题目上方）
+    setReadingPassage(getReadingPassage());
     
     setReadingQuestions(randomReading.map(q => ({
       id: q.id,
@@ -435,7 +408,10 @@ const AssessmentGame = () => {
                 }}>
                   {currentReadingIndex + 1}
                 </span>
-                {currentQ?.stem?.split('\n').find(l => l.startsWith('What') || l.startsWith('How')) || '请回答以下问题'}
+                {/* 显示完整题干（移除【阅读短文】和短文内容，只显示问题部分） */}
+                {currentQ?.stem?.replace(/^【阅读短文】\s*[\s\S]*?^【/m, '【')?.replace(/^【阅读短文】\s*[\s\S]*?(?=What|Why|How|Which)/, '').trim() || 
+                  currentQ?.stem?.split('\n').find(l => l.startsWith('【')) || 
+                  '请回答以下问题'}
               </h4>
               
               {/* 选项 */}
