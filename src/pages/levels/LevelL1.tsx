@@ -213,29 +213,20 @@ const AssessmentGame = () => {
     setShowExplanation(true);
   };
 
-  // 下一题
+  // 下一组
   const handleNextQuestion = () => {
     setShowExplanation(false);
     
     if (gameState === 'reading') {
-      const currentGroup = getCurrentPassageGroup();
-      if (!currentGroup) return;
-      
-      // 检查当前文章是否还有下一题
-      if (currentQuestionIndex < currentGroup.questions.length - 1) {
-        // 同一文章，下一题
-        setCurrentQuestionIndex(i => i + 1);
+      // 单页显示模式：所有问题已答完，直接切换到下一篇文章
+      if (currentPassageIndex < passageGroups.length - 1) {
+        setCurrentPassageIndex(i => i + 1);
+        setCurrentQuestionIndex(0);
       } else {
-        // 当前文章的所有题目已完成，切换到下一篇文章
-        if (currentPassageIndex < passageGroups.length - 1) {
-          setCurrentPassageIndex(i => i + 1);
-          setCurrentQuestionIndex(0);
-        } else {
-          // 所有阅读文章完成，进入语法部分
-          setCurrentPassageIndex(0);
-          setCurrentQuestionIndex(0);
-          setGameState('grammar');
-        }
+        // 所有阅读文章完成，进入语法部分
+        setCurrentPassageIndex(0);
+        setCurrentQuestionIndex(0);
+        setGameState('grammar');
       }
     } else if (gameState === 'grammar') {
       if (currentGrammarIndex < grammarQuestions.length - 1) {
