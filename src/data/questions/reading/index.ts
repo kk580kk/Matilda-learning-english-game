@@ -1,17 +1,13 @@
 /**
- * 阅读理解题 - 索引文件
+ * 阅读理解题 - 索引文件（增强版）
  * 
  * 本文件汇总所有章节的阅读理解题
- * 所有题目必须严格遵循 PRD v1.0 和 SRS v1.0 规范：
- * - 必须使用原著原文
- * - 禁止任何形式的改写
- * - 必须标注来源章节
+ * 增强功能:
+ * - 长文章（1000+词）
+ * - 题库系统（每篇文章多组题目，支持随机抽题）
+ * - 难度分级（简单/中等/困难题目混合）
  * 
- * 章节覆盖:
- * - Chapter 1: The Reader of Books
- * - Chapter 2: Mr Wormwood, the Great Car Dealer
- * - Chapter 3: The Hat and the Superglue
- * - Chapter 4-21: [待添加]
+ * PRD v1.1 / SRS v1.1 规范
  */
 
 import { Question } from '../../../types';
@@ -20,6 +16,15 @@ import CHAPTER2_QUESTIONS from './chapter2';
 import CHAPTER3_QUESTIONS from './chapter3';
 import CHAPTER4_QUESTIONS from './chapter4';
 import CHAPTER5_QUESTIONS from './chapter5';
+
+// 导入增强版 Chapter 1
+import { 
+  CHAPTER1_PASSAGES as CHAPTER1_ENHANCED_PASSAGES,
+  selectQuestionsByDifficulty,
+  selectRandomQuestions,
+  getChapter1Stats,
+  QuestionSelectionConfig
+} from './chapter1-enhanced';
 
 // ============================================
 // 所有章节的题目汇总
@@ -32,6 +37,21 @@ export const ALL_READING_QUESTIONS: Question[] = [
   ...CHAPTER4_QUESTIONS,
   ...CHAPTER5_QUESTIONS
 ];
+
+// ============================================
+// 增强版题库导出
+// ============================================
+
+export type { 
+  QuestionSelectionConfig
+};
+
+export { 
+  CHAPTER1_ENHANCED_PASSAGES,
+  selectQuestionsByDifficulty,
+  selectRandomQuestions,
+  getChapter1Stats
+};
 
 // ============================================
 // 章节统计信息

@@ -6,13 +6,10 @@ import { getLevelConfig, LEVEL_CONFIGS } from '../../data/levels/config';
 import { LearningPhase } from '../../types';
 import { GRAMMAR_QUESTIONS } from '../../data/questions';
 import { 
-  CHAPTER6_PASSAGES, 
-  getQuestionsByPassageId as getQuestionsByPassageIdC6
-} from '../../data/questions/reading/chapter6';
-import { 
-  CHAPTER7_PASSAGES, 
-  getQuestionsByPassageId as getQuestionsByPassageIdC7
-} from '../../data/questions/reading/chapter7';
+  CHAPTER1_ENHANCED_PASSAGES,
+  selectQuestionsByDifficulty,
+  type QuestionSelectionConfig
+} from '../../data/questions/reading/index';
 
 // Get L3 config
 const LEVEL_CONFIG = getLevelConfig('L3') || LEVEL_CONFIGS[2];
@@ -55,6 +52,7 @@ interface QuizQuestion {
   chineseExplanation?: string;
   relatedWords?: string[];
   relatedGrammar?: string[];
+  difficulty?: number;
   userAnswer?: string;
   isCorrect?: boolean;
 }
@@ -83,45 +81,40 @@ const LevelL3 = () => {
   const [readingScore, setReadingScore] = useState(0);
   const [grammarScore, setGrammarScore] = useState(0);
 
-  // 初始化题目 - Combine Chapter 6 and Chapter 7
+  // 初始化题目 - 使用增强版题库系统
   const initQuestions = useCallback(() => {
-    // 获取 Chapter 6 的所有段落组
-    const chapter6Groups = CHAPTER6_PASSAGES.map(passage => ({
-      passage,
-      questions: getQuestionsByPassageIdC6(passage.id)
-    }));
+    // 使用 Chapter 1 增强版长文章和题库
+    // 配置：每篇文章抽取 2道简单 + 2道中等 + 1道困难 = 5题
+    const selectionConfig: QuestionSelectionConfig = {
+      easyCount: 2,
+      mediumCount: 2,
+      hardCount: 1
+    };
     
-    // 获取 Chapter 7 的所有段落组
-    const chapter7Groups = CHAPTER7_PASSAGES.map(passage => ({
-      passage,
-      questions: getQuestionsByPassageIdC7(passage.id)
-    }));
-    
-    // 合并所有段落，筛选难度 <= 3
-    const allGroups = [...chapter6Groups, ...chapter7Groups]
-      .filter(group => group.passage.difficulty <= 3);
-    
-    // 转换题目格式
-    const formattedGroups = allGroups.map(group => ({
-      passage: group.passage,
-      questions: group.questions.map(q => {
-        const lines = q.stem.split('\n');
-        const questionLines = lines.filter(l => l.startsWith('【'));
-        const lastQuestionLine = questionLines[questionLines.length - 1] || '请回答以下问题';
-        
-        return {
+    // 从每篇长文章中抽取题目
+    const formattedGroups = CHAPTER1_ENHANCED_PASSAGES.map(passage => {
+      const selectedQuestions = selectQuestionsByDifficulty(passage.id, selectionConfig);
+      
+      return {
+        passage: {
+          ...passage,
+          // 确保文章文本完整显示
+          text: passage.text
+        },
+        questions: selectedQuestions.map(q => ({
           id: q.id,
           type: q.type,
-          stem: lastQuestionLine,
+          stem: q.stem,
           options: q.options || [],
           correctAnswer: String(q.correctAnswer),
           explanation: q.explanation,
           chineseExplanation: q.chineseExplanation,
           relatedWords: q.relatedWords,
-          relatedGrammar: q.relatedGrammar
-        };
-      })
-    }));
+          relatedGrammar: q.relatedGrammar,
+          difficulty: q.difficulty
+        }))
+      };
+    });
     
     setPassageGroups(formattedGroups);
 
@@ -138,7 +131,8 @@ const LevelL3 = () => {
       explanation: q.explanation,
       chineseExplanation: q.chineseExplanation,
       relatedWords: q.relatedWords,
-      relatedGrammar: q.relatedGrammar
+      relatedGrammar: q.relatedGrammar,
+      difficulty: q.difficulty
     })));
 
     // 重置状态
@@ -330,9 +324,12 @@ const LevelL3 = () => {
               <li>难度: {'★'.repeat(LEVEL_CONFIG.difficulty)}{'☆'.repeat(5 - LEVEL_CONFIG.difficulty)}</li>
             </ul>
             
-            <h3 className="mt-8 mb-4">📝 测评内容</h3>
+            <h3 className="mt-8 mb-4">📝 测评内容（增强版题库）</h3>
             <ul style={{ paddingLeft: '20px', lineHeight: '2' }}>
-              <li>✅ 阅读理解（Chapter 6-7，2章，4段，约14题）</li>
+              <li>✅ 阅读理解（Chapter 1，2篇长文，1000+词/篇）</li>
+              <li>✅ 智能抽题（每篇从题库随机抽取5题）</li>
+              <li>✅ 难度分级（简单2题 + 中等2题 + 困难1题）</li>
+              <li>✅ 每次游玩题目不同（题库系统）</li>
               <li>✅ 时态辨析题（5道语法选择题）</li>
               <li>⏱️ 答题时间：10分钟</li>
               <li>📊 及格分数：70分</li>
