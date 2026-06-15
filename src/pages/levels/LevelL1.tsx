@@ -1,17 +1,14 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useLevelStore, useAchievementStore, useGameStore } from '../../store';
 import { getLevelConfig, LEVEL_CONFIGS } from '../../data/levels/config';
 import { LearningPhase } from '../../types';
-import { GRAMMAR_QUESTIONS } from '../../data/questions';
-import { ScrollableArticle } from '../../components/v3/ReadingProgress';
-import { QuestionCardV3 } from '../../components/v3/MixedDifficultyOptions';
-import { convertQuestionsToV3 } from '../../utils/v3utils';
-import {
-  CHAPTER1_PASSAGES,
-  getQuestionsByPassageId
-} from '../../data/questions/reading/chapter1';
+import { ReadingGameV3 } from '../../components/v3/ReadingGameV3';
+import { 
+  CHAPTER1_ARTICLE_V3, 
+  CHAPTER1_QUESTIONS_V3 
+} from '../../data/questions/reading/chapter1-v3';
 
 // Get L1 config
 const LEVEL_CONFIG = getLevelConfig('L1') || LEVEL_CONFIGS[0];
@@ -44,203 +41,62 @@ const getObjectives = () => {
   return objectives;
 };
 
-interface QuizQuestion {
-  id: string;
-  type: string;
-  stem: string;
-  options: string[];
-  correctAnswer: string;
-  explanation: string;
-  chineseExplanation?: string;
-  relatedWords?: string[];
-  relatedGrammar?: string[];
-  userAnswer?: string;
-  isCorrect?: boolean;
-}
-
-const AssessmentGame = () => {
+const LevelL1 = () => {
   const { completeLevel } = useLevelStore();
   const { unlockAchievement } = useAchievementStore();
   const { startGame, endGame } = useGameStore();
 
   // 游戏状态
-  const [gameState, setGameState] = useState<'intro' | 'reading' | 'grammar' | 'results'>('intro');
+  const [gameState, setGameState] = useState<'intro' | 'playing' | 'completed'>('intro');
+  const [gameResult, setGameResult] = useState<{
+    totalQuestions: number;
+    correctCount: number;
+    totalScore: number;
+    accuracy: number;
+  } | null>(null);
 
-  // 阅读理解状态 - 文章和题目分组
-  const [passageGroups, setPassageGroups] = useState<any[]>([]);
-  const [currentPassageIndex, setCurrentPassageIndex] = useState(0);
-
-  // 语法题状态
-  const [grammarQuestions, setGrammarQuestions] = useState<QuizQuestion[]>([]);
-  const [currentGrammarIndex, setCurrentGrammarIndex] = useState(0);
-
-  // 通用状态
-  const [showExplanation, setShowExplanation] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(600);
-  const [score, setScore] = useState(0);
-  const [readingScore, setReadingScore] = useState(0);
-  const [grammarScore, setGrammarScore] = useState(0);
-
-  // 初始化题目 - PRD v3.2: 使用 Chapter 1 的段落和题目绑定结构
-  const initQuestions = useCallback(() => {
-    // 获取 Chapter 1 的所有段落组（文章+题目）
-    // L1 使用难度 1-2 的段落（段落1和段落2）
-    const allGroups = CHAPTER1_PASSAGES.map(passage => ({
-      passage,
-      questions: getQuestionsByPassageId(passage.id)
-    }));
-
-    // 筛选难度 1-2 的段落（段落1难度1，段落2难度2）
-    const level1to2Groups = allGroups.filter(group => group.passage.difficulty <= 2);
-
-    setPassageGroups(level1to2Groups);
-
-    // 随机选择5道语法/时态题
-    const allGrammar = GRAMMAR_QUESTIONS.filter(q => q.difficulty! <= 2);
-    const randomGrammar = allGrammar.slice(0, 5).sort(() => Math.random() - 0.5);
-
-    setGrammarQuestions(randomGrammar.map(q => ({
-      id: q.id,
-      type: q.type,
-      stem: q.stem.includes('___') ? q.stem : `请选择正确的时态形式：\n${q.stem}`,
-      options: q.options || [],
-      correctAnswer: String(q.correctAnswer),
-      explanation: q.explanation,
-      chineseExplanation: q.chineseExplanation,
-      relatedWords: q.relatedWords,
-      relatedGrammar: q.relatedGrammar
-    })));
-
-    // 重置状态
-    setCurrentPassageIndex(0);
-    setCurrentGrammarIndex(0);
-    setScore(0);
-    setReadingScore(0);
-    setGrammarScore(0);
-    setShowExplanation(false);
-    setTimeLeft(600);
-  }, []);
-
-  // 计时器
-  useEffect(() => {
-    if (gameState === 'reading' || gameState === 'grammar') {
-      if (timeLeft > 0) {
-        const timer = setTimeout(() => setTimeLeft(t => t - 1), 1000);
-        return () => clearTimeout(timer);
-      } else {
-        handleFinish();
-      }
-    }
-  }, [timeLeft, gameState]);
-
-  const startPlaying = () => {
-    initQuestions();
-    setGameState('reading');
+  // 开始游戏
+  const startPlaying = useCallback(() => {
+    setGameState('playing');
     startGame();
-  };
+  }, [startGame]);
 
-  // 获取当前文章和题目
-  const getCurrentPassageGroup = () => {
-    return passageGroups[currentPassageIndex];
-  };
-
-  // 处理阅读理解答题（v3.0格式）
-  const handleReadingAnswer = (answer: string, questionIndex: number) => {
-    const group = getCurrentPassageGroup();
-    if (!group) return;
-    const currentQ = group.questions[questionIndex];
-    if (!currentQ) return;
-
-    const isCorrect = answer === currentQ.correctAnswer;
-
-    // 更新指定题目的状态（使用传入的 questionIndex 而非 currentQuestionIndex）
-    const updatedGroups = [...passageGroups];
-    updatedGroups[currentPassageIndex].questions[questionIndex] = {
-      ...currentQ,
-      userAnswer: answer,
-      isCorrect
-    };
-    setPassageGroups(updatedGroups);
-
-    if (isCorrect) {
-      setReadingScore(s => s + 1);
-      setScore(s => s + 10);
-    }
-  };
-
-  // 处理语法/时态答题
-  const handleGrammarAnswer = (answer: string) => {
-    const currentQ = grammarQuestions[currentGrammarIndex];
-    const isCorrect = answer === currentQ.correctAnswer;
-
-    const updatedQuestions = [...grammarQuestions];
-    updatedQuestions[currentGrammarIndex] = {
-      ...currentQ,
-      userAnswer: answer,
-      isCorrect
-    };
-    setGrammarQuestions(updatedQuestions);
-
-    if (isCorrect) {
-      setGrammarScore(s => s + 1);
-      setScore(s => s + 10);
-    }
-
-    setShowExplanation(true);
-  };
-
-  // 下一组
-  const handleNextQuestion = () => {
-    setShowExplanation(false);
-
-    if (gameState === 'reading') {
-      // 单页显示模式：所有问题已答完，直接切换到下一篇文章
-      if (currentPassageIndex < passageGroups.length - 1) {
-        setCurrentPassageIndex(i => i + 1);
-      } else {
-        // 所有阅读文章完成，进入语法部分
-        setCurrentPassageIndex(0);
-        setGameState('grammar');
-      }
-    } else if (gameState === 'grammar') {
-      if (currentGrammarIndex < grammarQuestions.length - 1) {
-        setCurrentGrammarIndex(i => i + 1);
-      } else {
-        handleFinish();
-      }
-    }
-  };
-
-  // 完成测评
-  const handleFinish = () => {
-    setGameState('results');
+  // 完成游戏
+  const handleComplete = useCallback((result: {
+    totalQuestions: number;
+    correctCount: number;
+    totalScore: number;
+    timeSpent: number;
+    accuracy: number;
+    readingProgress: number;
+  }) => {
+    setGameResult({
+      totalQuestions: result.totalQuestions,
+      correctCount: result.correctCount,
+      totalScore: result.totalScore,
+      accuracy: result.accuracy
+    });
+    setGameState('completed');
     endGame();
 
-    const totalQuestions = passageGroups.reduce((sum, g) => sum + g.questions.length, 0) + grammarQuestions.length;
-    const correctCount = readingScore + grammarScore;
-    const finalScore = Math.round((correctCount / totalQuestions) * 100);
-
+    // 计算最终分数
+    const finalScore = result.accuracy;
     completeLevel('L1', finalScore);
 
+    // 解锁成就
     if (finalScore >= 90) {
       unlockAchievement('perfect_score');
     }
     if (finalScore >= 70) {
       unlockAchievement('assessment_pass');
     }
-  };
+  }, [completeLevel, unlockAchievement, endGame]);
 
-  // 格式化时间
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // 获取总阅读题数
-  const getTotalReadingQuestions = () => {
-    return passageGroups.reduce((sum, g) => sum + g.questions.length, 0);
-  };
+  // 退出游戏
+  const handleExit = useCallback(() => {
+    setGameState('intro');
+    endGame();
+  }, [endGame]);
 
   // ========================================
   // 渲染：介绍页
@@ -281,18 +137,17 @@ const AssessmentGame = () => {
 
             <h3 className="mt-8 mb-4">🚀 v3.0 新特性</h3>
             <ul style={{ paddingLeft: '20px', lineHeight: '2' }}>
-              <li>✅ 可滚动长文阅读（带进度追踪）</li>
+              <li>✅ 可滚动长文阅读（{CHAPTER1_ARTICLE_V3.wordCount} 词）</li>
               <li>✅ Fisher-Yates 随机抽题算法</li>
               <li>✅ 混合难度选项（简单/中等/困难）</li>
               <li>✅ 加权评分系统</li>
-              <li>✅ 阅读进度缓存</li>
+              <li>✅ 阅读进度追踪</li>
             </ul>
 
             <h3 className="mt-8 mb-4">📝 测评内容</h3>
             <ul style={{ paddingLeft: '20px', lineHeight: '2' }}>
-              <li>📖 阅读理解（2篇短文，每篇3-4题，共7题）</li>
-              <li>✍️ 时态辨析题（5道语法选择题）</li>
-              <li>⏱️ 答题时间：10分钟</li>
+              <li>📖 阅读理解（长文阅读，随机抽题）</li>
+              <li>⏱️ 预计阅读时间：{CHAPTER1_ARTICLE_V3.estimatedReadingTime} 分钟</li>
               <li>📊 及格分数：70分</li>
             </ul>
           </div>
@@ -312,457 +167,149 @@ const AssessmentGame = () => {
   }
 
   // ========================================
-  // 渲染：阅读理解 - 使用 v3.0 组件
+  // 渲染：游戏进行中 - 使用 ReadingGameV3
   // ========================================
-  if (gameState === 'reading') {
-    const currentGroup = getCurrentPassageGroup();
-
-    if (!currentGroup) {
-      return <div>加载中...</div>;
-    }
-
-    const totalReading = getTotalReadingQuestions();
-    const currentProgress = getTotalReadingQuestions() > 0
-      ? Math.round(((currentPassageIndex * currentGroup.questions.length) / totalReading) * 50)
-      : 0;
-
-    // 转换题目为v3格式
-    const v3Questions = convertQuestionsToV3(currentGroup.questions, currentGroup.passage.id);
-
-    // 检查当前文章的所有题目是否已完成
-    const allQuestionsAnswered = currentGroup.questions.every((q: QuizQuestion) => q.userAnswer !== undefined);
-
+  if (gameState === 'playing') {
     return (
-      <div className="game-container" style={{ maxWidth: '100%', padding: '20px' }}>
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <Link to="/levels" style={{ color: '#9b7fc9', textDecoration: 'none' }}>
-            ← 退出
-          </Link>
-          <div className="flex gap-4">
-            <span style={{ color: timeLeft < 60 ? '#e76f51' : '#f4a261' }}>
-              ⏱️ {formatTime(timeLeft)}
-            </span>
-            <span style={{ color: '#2a9d8f' }}>🏆 {score}分</span>
-          </div>
-        </div>
-
-        {/* Progress */}
-        <div className="progress-bar mb-4">
-          <div
-            className="progress-bar-fill"
-            style={{ width: `${currentProgress}%` }}
-          />
-        </div>
-
-        <div className="text-center mb-4" style={{ color: '#888' }}>
-          阅读理解 v3.0 · 文章 {currentPassageIndex + 1}/{passageGroups.length} · 共 {currentGroup.questions.length} 题
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="card"
-          style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            textAlign: 'left',
-            width: '100%'
-          }}
-        >
-          {/* 使用 v3.0 可滚动文章组件 */}
-          <ScrollableArticle
-            title={currentGroup.passage.title}
-            source={`选自 Chapter ${currentGroup.passage.chapterNumber}: ${currentGroup.passage.chapterTitle}`}
-            content={currentGroup.passage.text}
-            wordCount={currentGroup.passage.wordCount}
-            maxHeight="50vh"
-          />
-
-          {/* 使用 v3.0 题目卡片组件 */}
-          <div style={{ marginTop: '28px' }}>
-            <h3 style={{
-              marginBottom: '24px',
-              fontSize: '1.3rem',
-              color: '#ffffff',
-              fontWeight: 'bold',
-              textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-              padding: '12px 16px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              borderRadius: '8px',
-              textAlign: 'center'
-            }}>
-              📝 阅读理解题目 v3.0
-            </h3>
-
-            {v3Questions.map((q, qIdx) => {
-              const originalQ = currentGroup.questions[qIdx];
-              const isAnswered = originalQ.userAnswer !== undefined;
-
-              return (
-                <div key={q.id} style={{ marginBottom: '24px' }}>
-                  <QuestionCardV3
-                    questionNumber={qIdx + 1}
-                    questionText={q.stem}
-                    questionType={q.questionSubtype}
-                    options={q.optionsV3 || []}
-                    selectedOption={originalQ.userAnswer}
-                    correctAnswer={q.correctAnswer as string}
-                    showResult={isAnswered}
-                    onSelect={(optionId) => handleReadingAnswer(optionId, qIdx)}
-                    disabled={isAnswered}
-                  />
-                  {/* 显示解析 */}
-                  {isAnswered && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      style={{
-                        marginTop: '12px',
-                        padding: '16px',
-                        background: originalQ.isCorrect ? '#d1fae5' : '#fee2e2',
-                        border: originalQ.isCorrect ? '1px solid #22c55e' : '1px solid #ef4444',
-                        borderRadius: '8px',
-                        color: '#1a1a1a'
-                      }}
-                    >
-                      <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-                        {originalQ.isCorrect ? '✅ 回答正确！' : `❌ 回答错误，正确答案是 ${q.correctAnswer}`}
-                      </div>
-                      <div>
-                        <strong>📝 解析：</strong>{q.chineseExplanation || q.explanation}
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* 下一组按钮 - 所有题目答完后显示 */}
-          {allQuestionsAnswered && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              style={{
-                marginTop: '32px',
-                padding: '24px',
-                background: '#f0f9ff',
-                borderRadius: '12px',
-                border: '2px solid #0ea5e9',
-                textAlign: 'center'
-              }}
-            >
-              <div style={{ fontSize: '1.2rem', marginBottom: '16px', color: '#0369a1' }}>
-                ✅ 已完成本组所有题目！
-              </div>
-              <motion.button
-                className="btn btn-primary"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleNextQuestion}
-                style={{ fontSize: '1.1rem', padding: '16px 48px' }}
-              >
-                {currentPassageIndex < passageGroups.length - 1
-                  ? '下一组文章 →'
-                  : '进入语法部分 →'}
-              </motion.button>
-            </motion.div>
-          )}
-        </motion.div>
-      </div>
-    );
-  }
-
-  // ========================================
-  // 渲染：语法部分
-  // ========================================
-  if (gameState === 'grammar') {
-    const currentQ = grammarQuestions[currentGrammarIndex];
-
-    return (
-      <div className="game-container">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <Link to="/levels" style={{ color: '#9b7fc9', textDecoration: 'none' }}>
-            ← 退出
-          </Link>
-          <div className="flex gap-4">
-            <span style={{ color: timeLeft < 60 ? '#e76f51' : '#f4a261' }}>
-              ⏱️ {formatTime(timeLeft)}
-            </span>
-            <span style={{ color: '#2a9d8f' }}>🏆 {score}分</span>
-          </div>
-        </div>
-
-        {/* Progress - 从50%开始（阅读占一半） */}
-        <div className="progress-bar mb-4">
-          <div
-            className="progress-bar-fill"
-            style={{ width: `${50 + ((currentGrammarIndex + 1) / grammarQuestions.length) * 50}%` }}
-          />
-        </div>
-
-        <div className="text-center mb-2" style={{ color: '#888' }}>
-          语法填空 · 第 {currentGrammarIndex + 1}/{grammarQuestions.length} 题
-        </div>
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentQ?.id}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="card"
-            style={{ maxWidth: '700px', margin: '0 auto', textAlign: 'left' }}
-          >
-            {/* 题目 */}
-            <div style={{ marginBottom: '20px' }}>
-              <h4 style={{ marginBottom: '12px' }}>
-                <span style={{
-                  background: '#9b7fc9',
-                  color: 'white',
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  marginRight: '8px',
-                  fontSize: '0.9rem'
-                }}>
-                  {currentGrammarIndex + 1}
-                </span>
-                {currentQ?.stem?.includes('___') ? (
-                  <span style={{ fontFamily: 'Georgia, serif', fontSize: '1.1rem' }}>
-                    {currentQ?.stem?.split('___').map((part, i, arr) => (
-                      <span key={i}>
-                        {part}
-                        {i < arr.length - 1 && (
-                          <span style={{
-                            display: 'inline-block',
-                            minWidth: '60px',
-                            borderBottom: '2px solid #9b7fc9',
-                            margin: '0 4px',
-                            textAlign: 'center'
-                          }}>
-                            &nbsp;
-                          </span>
-                        )}
-                      </span>
-                    ))}
-                  </span>
-                ) : (
-                  currentQ?.stem
-                )}
-              </h4>
-
-              {/* 选项 */}
-              <div style={{ display: 'grid', gap: '12px' }}>
-                {currentQ?.options?.map((option, idx) => {
-                  const isSelected = currentQ.userAnswer === option.charAt(0);
-                  const isCorrectAnswer = option.charAt(0) === currentQ.correctAnswer;
-                  const showResult = showExplanation;
-
-                  let bgColor = '#f1f3f5';
-                  let borderColor = '#dee2e6';
-
-                  if (showResult) {
-                    if (isCorrectAnswer) {
-                      bgColor = '#d3f9d8';
-                      borderColor = '#40c057';
-                    } else if (isSelected) {
-                      bgColor = '#ffe3e3';
-                      borderColor = '#fa5252';
-                    }
-                  } else if (isSelected) {
-                    bgColor = '#e7f5ff';
-                    borderColor = '#4dabf7';
-                  }
-
-                  return (
-                    <motion.button
-                      key={idx}
-                      whileHover={!showExplanation ? { scale: 1.01 } : {}}
-                      whileTap={!showExplanation ? { scale: 0.99 } : {}}
-                      onClick={() => !showExplanation && handleGrammarAnswer(option.charAt(0))}
-                      disabled={showExplanation}
-                      style={{
-                        padding: '14px 16px',
-                        borderRadius: '8px',
-                        border: `2px solid ${borderColor}`,
-                        background: bgColor,
-                        textAlign: 'left',
-                        cursor: showExplanation ? 'default' : 'pointer',
-                        fontSize: '1rem',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      {option}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 解析 */}
-            {showExplanation && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                style={{
-                  background: currentQ?.isCorrect ? '#d4edda' : '#f8d7da',
-                  border: currentQ?.isCorrect ? '2px solid #28a745' : '2px solid #dc3545',
-                  padding: '16px',
-                  borderRadius: '8px',
-                  marginTop: '16px',
-                  color: '#1a1a1a'
-                }}
-              >
-                <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '8px' }}>
-                  {currentQ?.isCorrect ? '✅ 回答正确！' : '❌ 回答错误，正确答案是 ' + currentQ?.correctAnswer}
-                </div>
-                <div style={{ marginBottom: '12px', fontSize: '1rem' }}>
-                  <strong>📝 解析：</strong>{currentQ?.chineseExplanation || currentQ?.explanation}
-                </div>
-                {currentQ?.relatedGrammar && currentQ.relatedGrammar.length > 0 && (
-                  <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '12px' }}>
-                    <strong>📚 相关语法：</strong>{currentQ.relatedGrammar.join(', ')}
-                  </div>
-                )}
-                <motion.button
-                  className="btn btn-primary"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleNextQuestion}
-                  style={{ marginTop: '8px' }}
-                >
-                  {currentGrammarIndex < grammarQuestions.length - 1 ? '下一题 →' : '查看结果 →'}
-                </motion.button>
-              </motion.div>
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+      <ReadingGameV3
+        articleTitle={CHAPTER1_ARTICLE_V3.title}
+        articleSource={`选自 Chapter ${CHAPTER1_ARTICLE_V3.chapterNumber}: ${CHAPTER1_ARTICLE_V3.chapterTitle}`}
+        articleContent={CHAPTER1_ARTICLE_V3.content}
+        wordCount={CHAPTER1_ARTICLE_V3.wordCount}
+        questions={CHAPTER1_QUESTIONS_V3}
+        articleId={CHAPTER1_ARTICLE_V3.id}
+        questionsPerSession={10}
+        enableRandomPick={true}
+        enableCache={true}
+        onComplete={handleComplete}
+        onExit={handleExit}
+      />
     );
   }
 
   // ========================================
   // 渲染：结果页
   // ========================================
-  const totalReadingQuestions = getTotalReadingQuestions();
-  const totalGrammarQuestions = grammarQuestions.length;
-  const totalQuestions = totalReadingQuestions + totalGrammarQuestions;
-  const correctReading = readingScore;
-  const correctGrammar = grammarScore;
-  const totalCorrect = correctReading + correctGrammar;
-  const percentage = Math.round((totalCorrect / totalQuestions) * 100);
-  const passed = percentage >= 70;
+  if (gameState === 'completed' && gameResult) {
+    const passed = gameResult.accuracy >= 70;
+    
+    return (
+      <div className="game-container">
+        <Link to="/levels" style={{ color: '#9b7fc9', textDecoration: 'none' }}>
+          ← 返回关卡选择
+        </Link>
 
-  return (
-    <div className="game-container">
-      <Link to="/levels" style={{ color: '#9b7fc9', textDecoration: 'none' }}>
-        ← 返回关卡选择
-      </Link>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center mt-8"
+        >
+          <div style={{ fontSize: '5rem', marginBottom: '16px' }}>
+            {passed ? '🎉' : '📝'}
+          </div>
+          <h1>{passed ? '恭喜通关！' : '测评完成'}</h1>
+          <p style={{ color: passed ? '#2a9d8f' : '#e76f51', marginTop: '8px', fontSize: '1.2rem' }}>
+            {passed ? '你成功完成了 L1 v3.0 测评！' : '继续加油，下次一定能通过！'}
+          </p>
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="text-center mt-8"
-      >
-        <div style={{ fontSize: '5rem', marginBottom: '16px' }}>
-          {passed ? '🎉' : '📝'}
-        </div>
-        <h1>{passed ? '恭喜通关！' : '测评完成'}</h1>
-        <p style={{ color: passed ? '#2a9d8f' : '#e76f51', marginTop: '8px', fontSize: '1.2rem' }}>
-          {passed ? '你成功完成了 L1 v3.0 测评！' : '继续加油，下次一定能通过！'}
-        </p>
+          <div className="card mt-8" style={{ maxWidth: '500px', margin: '32px auto' }}>
+            <h3 className="mb-6">📊 成绩详情</h3>
 
-        <div className="card mt-8" style={{ maxWidth: '500px', margin: '32px auto' }}>
-          <h3 className="mb-6">📊 成绩详情</h3>
+            <div style={{ display: 'grid', gap: '16px' }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                background: '#f8f9fa',
+                borderRadius: '8px'
+              }}>
+                <span>正确率</span>
+                <span style={{ color: gameResult.accuracy >= 70 ? '#2a9d8f' : '#e76f51' }}>
+                  {gameResult.accuracy}%
+                </span>
+              </div>
 
-          <div style={{ display: 'grid', gap: '16px' }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              padding: '12px 16px',
-              background: '#f8f9fa',
-              borderRadius: '8px'
-            }}>
-              <span>阅读理解 (v3.0)</span>
-              <span style={{ color: correctReading >= totalReadingQuestions * 0.7 ? '#2a9d8f' : '#e76f51' }}>
-                {correctReading}/{totalReadingQuestions} 正确
-              </span>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                background: '#f8f9fa',
+                borderRadius: '8px'
+              }}>
+                <span>答对题数</span>
+                <span>{gameResult.correctCount}/{gameResult.totalQuestions}</span>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                background: '#f8f9fa',
+                borderRadius: '8px'
+              }}>
+                <span>总得分</span>
+                <span>{gameResult.totalScore}</span>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '16px',
+                background: passed ? '#d4edda' : '#f8d7da',
+                borderRadius: '8px',
+                fontWeight: 'bold',
+                fontSize: '1.2rem'
+              }}>
+                <span>最终成绩</span>
+                <span style={{ color: passed ? '#28a745' : '#dc3545' }}>
+                  {gameResult.accuracy}分
+                </span>
+              </div>
             </div>
 
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              padding: '12px 16px',
-              background: '#f8f9fa',
-              borderRadius: '8px'
-            }}>
-              <span>语法填空</span>
-              <span style={{ color: correctGrammar >= totalGrammarQuestions * 0.7 ? '#2a9d8f' : '#e76f51' }}>
-                {correctGrammar}/{totalGrammarQuestions} 正确
-              </span>
-            </div>
-
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              padding: '16px',
-              background: passed ? '#d4edda' : '#f8d7da',
-              borderRadius: '8px',
-              fontWeight: 'bold',
-              fontSize: '1.2rem'
-            }}>
-              <span>总分</span>
-              <span style={{ color: passed ? '#28a745' : '#dc3545' }}>
-                {percentage}分
-              </span>
+            <div style={{ marginTop: '24px', padding: '16px', background: '#e7f5ff', borderRadius: '8px' }}>
+              <strong>💡 学习建议：</strong>
+              <ul style={{ marginTop: '8px', paddingLeft: '20px', lineHeight: '1.8', textAlign: 'left' }}>
+                {!passed && (
+                  <li>阅读理解需要加强，建议多读原著，注意细节</li>
+                )}
+                {passed && gameResult.accuracy >= 90 && (
+                  <li>表现优异！可以尝试挑战更高难度的关卡</li>
+                )}
+                {passed && gameResult.accuracy < 90 && (
+                  <li>表现不错！继续保持，争取下次满分</li>
+                )}
+              </ul>
             </div>
           </div>
 
-          <div style={{ marginTop: '24px', padding: '16px', background: '#e7f5ff', borderRadius: '8px' }}>
-            <strong>💡 学习建议：</strong>
-            <ul style={{ marginTop: '8px', paddingLeft: '20px', lineHeight: '1.8', textAlign: 'left' }}>
-              {correctReading < totalReadingQuestions * 0.7 && (
-                <li>阅读理解需要加强，建议多读原著，注意细节</li>
-              )}
-              {correctGrammar < totalGrammarQuestions * 0.7 && (
-                <li>语法部分需要复习，建议重点练习时态辨析</li>
-              )}
-              {passed && percentage >= 90 && (
-                <li>表现优异！可以尝试挑战更高难度的关卡</li>
-              )}
-              {passed && percentage < 90 && (
-                <li>表现不错！继续保持，争取下次满分</li>
-              )}
-            </ul>
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '32px' }}>
+            <Link to="/levels">
+              <motion.button
+                className="btn btn-secondary"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                返回关卡
+              </motion.button>
+            </Link>
+            {!passed && (
+              <motion.button
+                className="btn btn-primary"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={startPlaying}
+              >
+                重新挑战
+              </motion.button>
+            )}
           </div>
-        </div>
+        </motion.div>
+      </div>
+    );
+  }
 
-        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '32px' }}>
-          <Link to="/levels">
-            <motion.button
-              className="btn btn-secondary"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              返回关卡
-            </motion.button>
-          </Link>
-          {!passed && (
-            <motion.button
-              className="btn btn-primary"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={startPlaying}
-            >
-              重新挑战
-            </motion.button>
-          )}
-        </div>
-      </motion.div>
-    </div>
-  );
+  return null;
 };
 
-export default AssessmentGame;
+export default LevelL1;
