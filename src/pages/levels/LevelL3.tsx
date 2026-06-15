@@ -175,22 +175,18 @@ const LevelL3 = () => {
     return passageGroups[currentPassageIndex];
   };
 
-  const getCurrentReadingQuestion = () => {
-    const group = getCurrentPassageGroup();
-    if (!group) return null;
-    return group.questions[currentQuestionIndex];
-  };
-
   // 处理阅读理解答题
-  const handleReadingAnswer = (answer: string) => {
-    const currentQ = getCurrentReadingQuestion();
+  const handleReadingAnswer = (answer: string, questionIndex: number) => {
+    const group = getCurrentPassageGroup();
+    if (!group) return;
+    const currentQ = group.questions[questionIndex];
     if (!currentQ) return;
     
     const isCorrect = answer === currentQ.correctAnswer;
     
     // 更新当前题目状态
     const updatedGroups = [...passageGroups];
-    updatedGroups[currentPassageIndex].questions[currentQuestionIndex] = {
+    updatedGroups[currentPassageIndex].questions[questionIndex] = {
       ...currentQ,
       userAnswer: answer,
       isCorrect
@@ -201,8 +197,6 @@ const LevelL3 = () => {
       setReadingScore(s => s + 1);
       setScore(s => s + 10);
     }
-    
-    setShowExplanation(true);
   };
 
   // 处理语法/时态答题
@@ -530,7 +524,7 @@ const LevelL3 = () => {
                           key={optIdx}
                           whileHover={!isAnswered ? { scale: 1.01 } : {}}
                           whileTap={!isAnswered ? { scale: 0.99 } : {}}
-                          onClick={() => !isAnswered && handleReadingAnswer(option.charAt(0))}
+                          onClick={() => !isAnswered && handleReadingAnswer(option.charAt(0), qIdx)}
                           disabled={isAnswered}
                           style={{
                             padding: '16px 20px',
