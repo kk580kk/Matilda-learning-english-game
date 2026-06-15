@@ -350,21 +350,23 @@ const AssessmentGame = () => {
   }
 
   // ========================================
-  // 渲染：阅读理解
+  // 渲染：阅读理解 - 单页显示所有题目
   // ========================================
   if (gameState === 'reading') {
     const currentGroup = getCurrentPassageGroup();
-    const currentQ = getCurrentReadingQuestion();
     
-    if (!currentGroup || !currentQ) {
+    if (!currentGroup) {
       return <div>加载中...</div>;
     }
     
     const totalReading = getTotalReadingQuestions();
     const currentProgress = getCurrentReadingProgress();
     
+    // 检查当前文章的所有题目是否已完成
+    const allQuestionsAnswered = currentGroup.questions.every((q: QuizQuestion) => q.userAnswer !== undefined);
+    
     return (
-      <div className="game-container">
+      <div className="game-container" style={{ maxWidth: '100%', padding: '20px' }}>
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <Link to="/levels" style={{ color: '#9b7fc9', textDecoration: 'none' }}>
@@ -386,142 +388,224 @@ const AssessmentGame = () => {
           />
         </div>
 
-        <div className="text-center mb-2" style={{ color: '#888' }}>
-          阅读理解 · 第 {currentProgress}/{totalReading} 题（文章 {currentPassageIndex + 1}/{passageGroups.length}）
+        <div className="text-center mb-4" style={{ color: '#888' }}>
+          阅读理解 · 文章 {currentPassageIndex + 1}/{passageGroups.length} · 共 {currentGroup.questions.length} 题
         </div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${currentGroup.passage.id}-${currentQ.id}`}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="card"
-            style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'left' }}
-          >
-            {/* 短文阅读区域 - 固定显示当前文章 */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card"
+          style={{ 
+            maxWidth: '1200px', 
+            margin: '0 auto', 
+            textAlign: 'left',
+            width: '100%'
+          }}
+        >
+          {/* 短文阅读区域 - 增大尺寸，移除滚动 */}
+          <div style={{ 
+            background: '#ffffff', 
+            padding: '28px', 
+            borderRadius: '12px',
+            marginBottom: '28px',
+            fontFamily: 'Georgia, serif',
+            lineHeight: '1.9',
+            fontSize: '1.1rem',
+            color: '#1a1a1a',
+            border: '2px solid #e9ecef',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+          }}>
+            <h3 style={{ marginBottom: '16px', color: '#212529', fontWeight: 'bold', fontSize: '1.3rem' }}>
+              📖 阅读短文
+            </h3>
+            <div style={{ fontStyle: 'italic', color: '#6c757d', marginBottom: '12px', fontSize: '1rem' }}>
+              选自 Chapter {currentGroup.passage.chapterNumber}: {currentGroup.passage.chapterTitle}
+            </div>
+            <div style={{ fontSize: '0.95rem', color: '#888', marginBottom: '16px' }}>
+              {currentGroup.passage.titleZh} ({currentGroup.passage.wordCount}词)
+            </div>
             <div style={{ 
-              background: '#ffffff', 
-              padding: '20px', 
-              borderRadius: '8px',
-              marginBottom: '20px',
-              maxHeight: '200px',
-              overflowY: 'auto',
-              fontFamily: 'Georgia, serif',
-              lineHeight: '1.8',
-              fontSize: '1rem',
-              color: '#1a1a1a',
-              border: '2px solid #e9ecef'
+              fontSize: '1.15rem', 
+              lineHeight: '1.9',
+              color: '#333'
             }}>
-              <h4 style={{ marginBottom: '12px', color: '#212529', fontWeight: 'bold' }}>📖 阅读短文</h4>
-              <div style={{ fontStyle: 'italic', color: '#6c757d', marginBottom: '8px', fontSize: '0.9rem' }}>
-                选自 Chapter {currentGroup.passage.chapterNumber}: {currentGroup.passage.chapterTitle}
-              </div>
-              <div style={{ fontSize: '0.85rem', color: '#888', marginBottom: '8px' }}>
-                {currentGroup.passage.titleZh} ({currentGroup.passage.wordCount}词)
-              </div>
               {currentGroup.passage.text}
             </div>
+          </div>
 
-            {/* 题目 */}
-            <div style={{ marginBottom: '20px' }}>
-              <h4 style={{ marginBottom: '12px' }}>
-                <span style={{ 
-                  background: '#6366f1', 
-                  color: 'white', 
-                  padding: '2px 8px', 
-                  borderRadius: '4px',
-                  marginRight: '8px',
-                  fontSize: '0.9rem'
-                }}>
-                  {currentQuestionIndex + 1}/{currentGroup.questions.length}
-                </span>
-                {currentQ.stem}
-              </h4>
+          {/* 所有题目 - 单页显示 */}
+          <div style={{ marginBottom: '20px' }}>
+            <h3 style={{ marginBottom: '24px', fontSize: '1.2rem', color: '#495057' }}>
+              📝 阅读理解题目
+            </h3>
+            
+            {currentGroup.questions.map((q: QuizQuestion, qIdx: number) => {
+              const isAnswered = q.userAnswer !== undefined;
               
-              {/* 选项 */}
-              <div style={{ display: 'grid', gap: '12px' }}>
-                {currentQ.options?.map((option: string, idx: number) => {
-                  const isSelected = currentQ.userAnswer === option.charAt(0);
-                  const isCorrectAnswer = option.charAt(0) === currentQ.correctAnswer;
-                  const showResult = showExplanation;
+              return (
+                <motion.div
+                  key={q.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: qIdx * 0.1 }}
+                  style={{
+                    marginBottom: '32px',
+                    padding: '24px',
+                    background: isAnswered ? (q.isCorrect ? '#f0fdf4' : '#fef2f2') : '#f8f9fa',
+                    borderRadius: '12px',
+                    border: isAnswered 
+                      ? (q.isCorrect ? '2px solid #86efac' : '2px solid #fca5a5')
+                      : '2px solid #e5e7eb'
+                  }}
+                >
+                  {/* 题目编号和题干 */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <span style={{ 
+                      background: isAnswered 
+                        ? (q.isCorrect ? '#22c55e' : '#ef4444')
+                        : '#6366f1', 
+                      color: 'white', 
+                      padding: '4px 12px', 
+                      borderRadius: '6px',
+                      marginRight: '12px',
+                      fontSize: '1rem',
+                      fontWeight: 'bold'
+                    }}>
+                      第 {qIdx + 1} 题
+                    </span>
+                    <span style={{ 
+                      fontSize: '1.1rem', 
+                      fontWeight: '500',
+                      color: '#1f2937'
+                    }}>
+                      {q.stem}
+                    </span>
+                  </div>
                   
-                  let bgColor = '#f1f3f5';
-                  let borderColor = '#dee2e6';
-                  
-                  if (showResult) {
-                    if (isCorrectAnswer) {
-                      bgColor = '#d3f9d8';
-                      borderColor = '#40c057';
-                    } else if (isSelected) {
-                      bgColor = '#ffe3e3';
-                      borderColor = '#fa5252';
-                    }
-                  } else if (isSelected) {
-                    bgColor = '#e7f5ff';
-                    borderColor = '#4dabf7';
-                  }
-                  
-                  return (
-                    <motion.button
-                      key={idx}
-                      whileHover={!showExplanation ? { scale: 1.01 } : {}}
-                      whileTap={!showExplanation ? { scale: 0.99 } : {}}
-                      onClick={() => !showExplanation && handleReadingAnswer(option.charAt(0))}
-                      disabled={showExplanation}
+                  {/* 选项 */}
+                  <div style={{ display: 'grid', gap: '12px', marginLeft: '8px' }}>
+                    {q.options?.map((option: string, optIdx: number) => {
+                      const isSelected = q.userAnswer === option.charAt(0);
+                      const isCorrectAnswer = option.charAt(0) === q.correctAnswer;
+                      
+                      let bgColor = '#ffffff';
+                      let borderColor = '#d1d5db';
+                      
+                      if (isAnswered) {
+                        if (isCorrectAnswer) {
+                          bgColor = '#dcfce7';
+                          borderColor = '#22c55e';
+                        } else if (isSelected) {
+                          bgColor = '#fee2e2';
+                          borderColor = '#ef4444';
+                        }
+                      } else if (isSelected) {
+                        bgColor = '#dbeafe';
+                        borderColor = '#3b82f6';
+                      }
+                      
+                      return (
+                        <motion.button
+                          key={optIdx}
+                          whileHover={!isAnswered ? { scale: 1.01 } : {}}
+                          whileTap={!isAnswered ? { scale: 0.99 } : {}}
+                          onClick={() => !isAnswered && handleReadingAnswer(option.charAt(0))}
+                          disabled={isAnswered}
+                          style={{
+                            padding: '16px 20px',
+                            borderRadius: '10px',
+                            border: `2px solid ${borderColor}`,
+                            background: bgColor,
+                            textAlign: 'left',
+                            cursor: isAnswered ? 'default' : 'pointer',
+                            fontSize: '1.05rem',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            background: isAnswered 
+                              ? (isCorrectAnswer ? '#22c55e' : isSelected ? '#ef4444' : '#9ca3af')
+                              : (isSelected ? '#3b82f6' : '#e5e7eb'),
+                            color: 'white',
+                            fontWeight: 'bold',
+                            marginRight: '12px',
+                            fontSize: '0.95rem'
+                          }}>
+                            {option.charAt(0)}
+                          </span>
+                          <span>{option.slice(2)}</span>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+
+                  {/* 解析 - 答题后显示 */}
+                  {isAnswered && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
                       style={{
-                        padding: '14px 16px',
+                        background: q.isCorrect ? '#d1fae5' : '#fee2e2',
+                        border: q.isCorrect ? '1px solid #22c55e' : '1px solid #ef4444',
+                        padding: '16px',
                         borderRadius: '8px',
-                        border: `2px solid ${borderColor}`,
-                        background: bgColor,
-                        textAlign: 'left',
-                        cursor: showExplanation ? 'default' : 'pointer',
-                        fontSize: '1rem',
-                        transition: 'all 0.2s'
+                        marginTop: '16px',
+                        color: '#1a1a1a'
                       }}
                     >
-                      {option}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </div>
+                      <div style={{ fontWeight: 'bold', fontSize: '1.05rem', marginBottom: '8px' }}>
+                        {q.isCorrect ? '✅ 回答正确！' : `❌ 回答错误，正确答案是 ${q.correctAnswer}`}
+                      </div>
+                      <div style={{ fontSize: '1rem', lineHeight: '1.6' }}>
+                        <strong>📝 解析：</strong>{q.chineseExplanation || q.explanation}
+                      </div>
+                    </motion.div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
 
-            {/* 解析 */}
-            {showExplanation && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                style={{
-                  background: currentQ?.isCorrect ? '#d4edda' : '#f8d7da',
-                  border: currentQ?.isCorrect ? '2px solid #28a745' : '2px solid #dc3545',
-                  padding: '16px',
-                  borderRadius: '8px',
-                  marginTop: '16px',
-                  color: '#1a1a1a'
-                }}
+          {/* 下一组按钮 - 所有题目答完后显示 */}
+          {allQuestionsAnswered && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                marginTop: '32px',
+                padding: '24px',
+                background: '#f0f9ff',
+                borderRadius: '12px',
+                border: '2px solid #0ea5e9',
+                textAlign: 'center'
+              }}
+            >
+              <div style={{ fontSize: '1.2rem', marginBottom: '16px', color: '#0369a1' }}>
+                ✅ 已完成本组所有题目！
+              </div>
+              <motion.button
+                className="btn btn-primary"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleNextQuestion}
+                style={{ fontSize: '1.1rem', padding: '16px 48px' }}
               >
-                <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '8px' }}>
-                  {currentQ?.isCorrect ? '✅ 回答正确！' : '❌ 回答错误，正确答案是 ' + currentQ?.correctAnswer}
-                </div>
-                <div style={{ marginBottom: '12px', fontSize: '1rem' }}>
-                  <strong>📝 解析：</strong>{currentQ?.chineseExplanation || currentQ?.explanation}
-                </div>
-                <motion.button
-                  className="btn btn-primary"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleNextQuestion}
-                  style={{ marginTop: '8px' }}
-                >
-                  {currentQuestionIndex < currentGroup.questions.length - 1 || currentPassageIndex < passageGroups.length - 1 
-                    ? '下一题 →' 
-                    : '进入语法部分 →'}
-                </motion.button>
-              </motion.div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+                {currentPassageIndex < passageGroups.length - 1 
+                  ? '下一组文章 →' 
+                  : '进入语法部分 →'}
+              </motion.button>
+            </motion.div>
+          )}
+        </motion.div>
       </div>
     );
   }
