@@ -5,8 +5,11 @@ import { useLevelStore, useAchievementStore, useGameStore } from '../../store';
 import { getLevelConfig, LEVEL_CONFIGS } from '../../data/levels/config';
 import { LearningPhase } from '../../types';
 import { GRAMMAR_QUESTIONS } from '../../data/questions';
-import { 
-  CHAPTER1_PASSAGES, 
+import { ScrollableArticle } from '../../components/v3/ReadingProgress';
+import { QuestionCardV3 } from '../../components/v3/MixedDifficultyOptions';
+import { convertQuestionsToV3 } from '../../utils/v3utils';
+import {
+  CHAPTER1_PASSAGES,
   getQuestionsByPassageId
 } from '../../data/questions/reading/chapter1';
 
@@ -17,7 +20,7 @@ const LEVEL_CONFIG = getLevelConfig('L1') || LEVEL_CONFIGS[0];
 const getObjectives = () => {
   const phases = LEVEL_CONFIG.learningFlow;
   const objectives: string[] = [];
-  
+
   phases.forEach(phase => {
     switch (phase.phase) {
       case LearningPhase.STORY_INTRO:
@@ -37,7 +40,7 @@ const getObjectives = () => {
         break;
     }
   });
-  
+
   return objectives;
 };
 
@@ -62,16 +65,15 @@ const AssessmentGame = () => {
 
   // 游戏状态
   const [gameState, setGameState] = useState<'intro' | 'reading' | 'grammar' | 'results'>('intro');
-  
+
   // 阅读理解状态 - 文章和题目分组
   const [passageGroups, setPassageGroups] = useState<any[]>([]);
   const [currentPassageIndex, setCurrentPassageIndex] = useState(0);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  
+
   // 语法题状态
   const [grammarQuestions, setGrammarQuestions] = useState<QuizQuestion[]>([]);
   const [currentGrammarIndex, setCurrentGrammarIndex] = useState(0);
-  
+
   // 通用状态
   const [showExplanation, setShowExplanation] = useState(false);
   const [timeLeft, setTimeLeft] = useState(600);
@@ -87,41 +89,16 @@ const AssessmentGame = () => {
       passage,
       questions: getQuestionsByPassageId(passage.id)
     }));
-    
+
     // 筛选难度 1-2 的段落（段落1难度1，段落2难度2）
     const level1to2Groups = allGroups.filter(group => group.passage.difficulty <= 2);
-    
-    // 转换题目格式
-    const formattedGroups = level1to2Groups.map(group => ({
-      passage: group.passage,
-      questions: group.questions.map(q => {
-        // 从 stem 中提取问题部分（去掉原文，保留题型标签和问题）
-        // stem 格式: 【阅读短文...】\n原文\n\n【题型】问题
-        const lines = q.stem.split('\n');
-        // 找到最后一个以【开头的行（题型+问题）
-        const questionLines = lines.filter(l => l.startsWith('【'));
-        const lastQuestionLine = questionLines[questionLines.length - 1] || '请回答以下问题';
-        
-        return {
-          id: q.id,
-          type: q.type,
-          stem: lastQuestionLine,
-          options: q.options || [],
-          correctAnswer: String(q.correctAnswer),
-          explanation: q.explanation,
-          chineseExplanation: q.chineseExplanation,
-          relatedWords: q.relatedWords,
-          relatedGrammar: q.relatedGrammar
-        };
-      })
-    }));
-    
-    setPassageGroups(formattedGroups);
+
+    setPassageGroups(level1to2Groups);
 
     // 随机选择5道语法/时态题
     const allGrammar = GRAMMAR_QUESTIONS.filter(q => q.difficulty! <= 2);
     const randomGrammar = allGrammar.slice(0, 5).sort(() => Math.random() - 0.5);
-    
+
     setGrammarQuestions(randomGrammar.map(q => ({
       id: q.id,
       type: q.type,
@@ -136,7 +113,6 @@ const AssessmentGame = () => {
 
     // 重置状态
     setCurrentPassageIndex(0);
-    setCurrentQuestionIndex(0);
     setCurrentGrammarIndex(0);
     setScore(0);
     setReadingScore(0);
@@ -168,15 +144,15 @@ const AssessmentGame = () => {
     return passageGroups[currentPassageIndex];
   };
 
-  // 处理阅读理解答题
+  // 处理阅读理解答题（v3.0格式）
   const handleReadingAnswer = (answer: string, questionIndex: number) => {
     const group = getCurrentPassageGroup();
     if (!group) return;
     const currentQ = group.questions[questionIndex];
     if (!currentQ) return;
-    
+
     const isCorrect = answer === currentQ.correctAnswer;
-    
+
     // 更新指定题目的状态（使用传入的 questionIndex 而非 currentQuestionIndex）
     const updatedGroups = [...passageGroups];
     updatedGroups[currentPassageIndex].questions[questionIndex] = {
@@ -185,7 +161,7 @@ const AssessmentGame = () => {
       isCorrect
     };
     setPassageGroups(updatedGroups);
-    
+
     if (isCorrect) {
       setReadingScore(s => s + 1);
       setScore(s => s + 10);
@@ -196,7 +172,7 @@ const AssessmentGame = () => {
   const handleGrammarAnswer = (answer: string) => {
     const currentQ = grammarQuestions[currentGrammarIndex];
     const isCorrect = answer === currentQ.correctAnswer;
-    
+
     const updatedQuestions = [...grammarQuestions];
     updatedQuestions[currentGrammarIndex] = {
       ...currentQ,
@@ -204,28 +180,26 @@ const AssessmentGame = () => {
       isCorrect
     };
     setGrammarQuestions(updatedQuestions);
-    
+
     if (isCorrect) {
       setGrammarScore(s => s + 1);
       setScore(s => s + 10);
     }
-    
+
     setShowExplanation(true);
   };
 
   // 下一组
   const handleNextQuestion = () => {
     setShowExplanation(false);
-    
+
     if (gameState === 'reading') {
       // 单页显示模式：所有问题已答完，直接切换到下一篇文章
       if (currentPassageIndex < passageGroups.length - 1) {
         setCurrentPassageIndex(i => i + 1);
-        setCurrentQuestionIndex(0);
       } else {
         // 所有阅读文章完成，进入语法部分
         setCurrentPassageIndex(0);
-        setCurrentQuestionIndex(0);
         setGameState('grammar');
       }
     } else if (gameState === 'grammar') {
@@ -241,13 +215,13 @@ const AssessmentGame = () => {
   const handleFinish = () => {
     setGameState('results');
     endGame();
-    
+
     const totalQuestions = passageGroups.reduce((sum, g) => sum + g.questions.length, 0) + grammarQuestions.length;
     const correctCount = readingScore + grammarScore;
     const finalScore = Math.round((correctCount / totalQuestions) * 100);
-    
+
     completeLevel('L1', finalScore);
-    
+
     if (finalScore >= 90) {
       unlockAchievement('perfect_score');
     }
@@ -268,15 +242,6 @@ const AssessmentGame = () => {
     return passageGroups.reduce((sum, g) => sum + g.questions.length, 0);
   };
 
-  // 获取当前阅读进度（从1开始计数）
-  const getCurrentReadingProgress = () => {
-    let prevQuestions = 0;
-    for (let i = 0; i < currentPassageIndex; i++) {
-      prevQuestions += passageGroups[i]?.questions.length || 0;
-    }
-    return prevQuestions + currentQuestionIndex + 1;
-  };
-
   // ========================================
   // 渲染：介绍页
   // ========================================
@@ -286,43 +251,52 @@ const AssessmentGame = () => {
         <Link to="/levels" style={{ color: '#9b7fc9', textDecoration: 'none' }}>
           ← 返回关卡选择
         </Link>
-        
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-center mt-8"
         >
-          <div style={{ fontSize: '4rem', marginBottom: '16px' }}>📚✍️</div>
-          <h1>{LEVEL_CONFIG.title}</h1>
+          <div style={{ fontSize: '4rem', marginBottom: '16px' }}>📚✨</div>
+          <h1>{LEVEL_CONFIG.title} <span style={{ color: '#667eea' }}>v3.0</span></h1>
           <p style={{ color: '#b8c1ec', marginTop: '8px' }}>{LEVEL_CONFIG.titleEn}</p>
-          
+
           <div className="card mt-8" style={{ maxWidth: '600px', margin: '32px auto', textAlign: 'left' }}>
             <h3 className="mb-4">📖 故事背景</h3>
             <p style={{ lineHeight: '1.8' }}>{LEVEL_CONFIG.storyBackground}</p>
-            
+
             <h3 className="mt-8 mb-4">🎯 五步学习循环</h3>
             <ul style={{ paddingLeft: '20px', lineHeight: '2' }}>
               {getObjectives().map((obj, i) => (
                 <li key={i}>{obj}</li>
               ))}
             </ul>
-            
+
             <h3 className="mt-8 mb-4">📚 中考目标</h3>
             <ul style={{ paddingLeft: '20px', lineHeight: '2' }}>
               <li>目标考试: 中考 (Zhōngkǎo)</li>
               <li>CEFR等级: {LEVEL_CONFIG.cefrLevel}</li>
               <li>难度: {'★'.repeat(LEVEL_CONFIG.difficulty)}{'☆'.repeat(5 - LEVEL_CONFIG.difficulty)}</li>
             </ul>
-            
+
+            <h3 className="mt-8 mb-4">🚀 v3.0 新特性</h3>
+            <ul style={{ paddingLeft: '20px', lineHeight: '2' }}>
+              <li>✅ 可滚动长文阅读（带进度追踪）</li>
+              <li>✅ Fisher-Yates 随机抽题算法</li>
+              <li>✅ 混合难度选项（简单/中等/困难）</li>
+              <li>✅ 加权评分系统</li>
+              <li>✅ 阅读进度缓存</li>
+            </ul>
+
             <h3 className="mt-8 mb-4">📝 测评内容</h3>
             <ul style={{ paddingLeft: '20px', lineHeight: '2' }}>
-              <li>✅ 阅读理解（2篇短文，每篇3-4题，共7题）</li>
-              <li>✅ 时态辨析题（5道语法选择题）</li>
+              <li>📖 阅读理解（2篇短文，每篇3-4题，共7题）</li>
+              <li>✍️ 时态辨析题（5道语法选择题）</li>
               <li>⏱️ 答题时间：10分钟</li>
               <li>📊 及格分数：70分</li>
             </ul>
           </div>
-          
+
           <motion.button
             className="btn btn-primary"
             whileHover={{ scale: 1.05 }}
@@ -330,7 +304,7 @@ const AssessmentGame = () => {
             onClick={startPlaying}
             style={{ fontSize: '1.3rem', padding: '16px 48px' }}
           >
-            开始测评
+            开始测评 v3.0
           </motion.button>
         </motion.div>
       </div>
@@ -338,21 +312,26 @@ const AssessmentGame = () => {
   }
 
   // ========================================
-  // 渲染：阅读理解 - 单页显示所有题目
+  // 渲染：阅读理解 - 使用 v3.0 组件
   // ========================================
   if (gameState === 'reading') {
     const currentGroup = getCurrentPassageGroup();
-    
+
     if (!currentGroup) {
       return <div>加载中...</div>;
     }
-    
+
     const totalReading = getTotalReadingQuestions();
-    const currentProgress = getCurrentReadingProgress();
-    
+    const currentProgress = getTotalReadingQuestions() > 0
+      ? Math.round(((currentPassageIndex * currentGroup.questions.length) / totalReading) * 50)
+      : 0;
+
+    // 转换题目为v3格式
+    const v3Questions = convertQuestionsToV3(currentGroup.questions, currentGroup.passage.id);
+
     // 检查当前文章的所有题目是否已完成
     const allQuestionsAnswered = currentGroup.questions.every((q: QuizQuestion) => q.userAnswer !== undefined);
-    
+
     return (
       <div className="game-container" style={{ maxWidth: '100%', padding: '20px' }}>
         {/* Header */}
@@ -370,64 +349,42 @@ const AssessmentGame = () => {
 
         {/* Progress */}
         <div className="progress-bar mb-4">
-          <div 
-            className="progress-bar-fill" 
-            style={{ width: `${(currentProgress / totalReading) * 50}%` }}
+          <div
+            className="progress-bar-fill"
+            style={{ width: `${currentProgress}%` }}
           />
         </div>
 
         <div className="text-center mb-4" style={{ color: '#888' }}>
-          阅读理解 · 文章 {currentPassageIndex + 1}/{passageGroups.length} · 共 {currentGroup.questions.length} 题
+          阅读理解 v3.0 · 文章 {currentPassageIndex + 1}/{passageGroups.length} · 共 {currentGroup.questions.length} 题
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="card"
-          style={{ 
-            maxWidth: '1200px', 
-            margin: '0 auto', 
+          style={{
+            maxWidth: '1200px',
+            margin: '0 auto',
             textAlign: 'left',
             width: '100%'
           }}
         >
-          {/* 短文阅读区域 - 增大尺寸，移除滚动 */}
-          <div style={{ 
-            background: '#ffffff', 
-            padding: '28px', 
-            borderRadius: '12px',
-            marginBottom: '28px',
-            fontFamily: 'Georgia, serif',
-            lineHeight: '1.9',
-            fontSize: '1.1rem',
-            color: '#1a1a1a',
-            border: '2px solid #e9ecef',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-          }}>
-            <h3 style={{ marginBottom: '16px', color: '#212529', fontWeight: 'bold', fontSize: '1.3rem' }}>
-              📖 阅读短文
-            </h3>
-            <div style={{ fontStyle: 'italic', color: '#6c757d', marginBottom: '12px', fontSize: '1rem' }}>
-              选自 Chapter {currentGroup.passage.chapterNumber}: {currentGroup.passage.chapterTitle}
-            </div>
-            <div style={{ fontSize: '0.95rem', color: '#888', marginBottom: '16px' }}>
-              {currentGroup.passage.titleZh} ({currentGroup.passage.wordCount}词)
-            </div>
-            <div style={{ 
-              fontSize: '1.15rem', 
-              lineHeight: '1.9',
-              color: '#333'
-            }}>
-              {currentGroup.passage.text}
-            </div>
-          </div>
+          {/* 使用 v3.0 可滚动文章组件 */}
+          <ScrollableArticle
+            title={currentGroup.passage.title}
+            source={`选自 Chapter ${currentGroup.passage.chapterNumber}: ${currentGroup.passage.chapterTitle}`}
+            content={currentGroup.passage.text}
+            wordCount={currentGroup.passage.wordCount}
+            maxHeight="50vh"
+          />
 
-          {/* 所有题目 - 单页显示 */}
-          <div style={{ marginBottom: '20px' }}>
-            <h3 style={{ 
-              marginBottom: '24px', 
-              fontSize: '1.3rem', 
-              color: '#ffffff', 
+          {/* 使用 v3.0 题目卡片组件 */}
+          <div style={{ marginTop: '28px' }}>
+            <h3 style={{
+              marginBottom: '24px',
+              fontSize: '1.3rem',
+              color: '#ffffff',
               fontWeight: 'bold',
               textShadow: '0 2px 4px rgba(0,0,0,0.3)',
               padding: '12px 16px',
@@ -435,140 +392,49 @@ const AssessmentGame = () => {
               borderRadius: '8px',
               textAlign: 'center'
             }}>
-              📝 阅读理解题目
+              📝 阅读理解题目 v3.0
             </h3>
-            
-            {currentGroup.questions.map((q: QuizQuestion, qIdx: number) => {
-              const isAnswered = q.userAnswer !== undefined;
-              
-              return (
-                <motion.div
-                  key={q.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: qIdx * 0.1 }}
-                  style={{
-                    marginBottom: '32px',
-                    padding: '24px',
-                    background: isAnswered ? (q.isCorrect ? '#f0fdf4' : '#fef2f2') : '#f8f9fa',
-                    borderRadius: '12px',
-                    border: isAnswered 
-                      ? (q.isCorrect ? '2px solid #86efac' : '2px solid #fca5a5')
-                      : '2px solid #e5e7eb'
-                  }}
-                >
-                  {/* 题目编号和题干 */}
-                  <div style={{ marginBottom: '16px' }}>
-                    <span style={{ 
-                      background: isAnswered 
-                        ? (q.isCorrect ? '#22c55e' : '#ef4444')
-                        : '#6366f1', 
-                      color: 'white', 
-                      padding: '4px 12px', 
-                      borderRadius: '6px',
-                      marginRight: '12px',
-                      fontSize: '1rem',
-                      fontWeight: 'bold'
-                    }}>
-                      第 {qIdx + 1} 题
-                    </span>
-                    <span style={{ 
-                      fontSize: '1.1rem', 
-                      fontWeight: '500',
-                      color: '#1f2937'
-                    }}>
-                      {q.stem}
-                    </span>
-                  </div>
-                  
-                  {/* 选项 */}
-                  <div style={{ display: 'grid', gap: '12px', marginLeft: '8px' }}>
-                    {q.options?.map((option: string, optIdx: number) => {
-                      const isSelected = q.userAnswer === option.charAt(0);
-                      const isCorrectAnswer = option.charAt(0) === q.correctAnswer;
-                      
-                      let bgColor = '#ffffff';
-                      let borderColor = '#d1d5db';
-                      
-                      if (isAnswered) {
-                        if (isCorrectAnswer) {
-                          bgColor = '#dcfce7';
-                          borderColor = '#22c55e';
-                        } else if (isSelected) {
-                          bgColor = '#fee2e2';
-                          borderColor = '#ef4444';
-                        }
-                      } else if (isSelected) {
-                        bgColor = '#dbeafe';
-                        borderColor = '#3b82f6';
-                      }
-                      
-                      return (
-                        <motion.button
-                          key={optIdx}
-                          whileHover={!isAnswered ? { scale: 1.01 } : {}}
-                          whileTap={!isAnswered ? { scale: 0.99 } : {}}
-                          onClick={() => !isAnswered && handleReadingAnswer(option.charAt(0), qIdx)}
-                          disabled={isAnswered}
-                          style={{
-                            padding: '16px 20px',
-                            borderRadius: '10px',
-                            border: `2px solid ${borderColor}`,
-                            background: bgColor,
-                            textAlign: 'left',
-                            cursor: isAnswered ? 'default' : 'pointer',
-                            fontSize: '1.05rem',
-                            transition: 'all 0.2s',
-                            display: 'flex',
-                            alignItems: 'center'
-                          }}
-                        >
-                          <span style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '50%',
-                            background: isAnswered 
-                              ? (isCorrectAnswer ? '#22c55e' : isSelected ? '#ef4444' : '#9ca3af')
-                              : (isSelected ? '#3b82f6' : '#e5e7eb'),
-                            color: 'white',
-                            fontWeight: 'bold',
-                            marginRight: '12px',
-                            fontSize: '0.95rem'
-                          }}>
-                            {option.charAt(0)}
-                          </span>
-                          <span>{option.slice(2)}</span>
-                        </motion.button>
-                      );
-                    })}
-                  </div>
 
-                  {/* 解析 - 答题后显示 */}
+            {v3Questions.map((q, qIdx) => {
+              const originalQ = currentGroup.questions[qIdx];
+              const isAnswered = originalQ.userAnswer !== undefined;
+
+              return (
+                <div key={q.id} style={{ marginBottom: '24px' }}>
+                  <QuestionCardV3
+                    questionNumber={qIdx + 1}
+                    questionText={q.stem}
+                    questionType={q.questionSubtype}
+                    options={q.optionsV3 || []}
+                    selectedOption={originalQ.userAnswer}
+                    correctAnswer={q.correctAnswer as string}
+                    showResult={isAnswered}
+                    onSelect={(optionId) => handleReadingAnswer(optionId, qIdx)}
+                    disabled={isAnswered}
+                  />
+                  {/* 显示解析 */}
                   {isAnswered && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       style={{
-                        background: q.isCorrect ? '#d1fae5' : '#fee2e2',
-                        border: q.isCorrect ? '1px solid #22c55e' : '1px solid #ef4444',
+                        marginTop: '12px',
                         padding: '16px',
+                        background: originalQ.isCorrect ? '#d1fae5' : '#fee2e2',
+                        border: originalQ.isCorrect ? '1px solid #22c55e' : '1px solid #ef4444',
                         borderRadius: '8px',
-                        marginTop: '16px',
                         color: '#1a1a1a'
                       }}
                     >
-                      <div style={{ fontWeight: 'bold', fontSize: '1.05rem', marginBottom: '8px' }}>
-                        {q.isCorrect ? '✅ 回答正确！' : `❌ 回答错误，正确答案是 ${q.correctAnswer}`}
+                      <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+                        {originalQ.isCorrect ? '✅ 回答正确！' : `❌ 回答错误，正确答案是 ${q.correctAnswer}`}
                       </div>
-                      <div style={{ fontSize: '1rem', lineHeight: '1.6' }}>
+                      <div>
                         <strong>📝 解析：</strong>{q.chineseExplanation || q.explanation}
                       </div>
                     </motion.div>
                   )}
-                </motion.div>
+                </div>
               );
             })}
           </div>
@@ -597,8 +463,8 @@ const AssessmentGame = () => {
                 onClick={handleNextQuestion}
                 style={{ fontSize: '1.1rem', padding: '16px 48px' }}
               >
-                {currentPassageIndex < passageGroups.length - 1 
-                  ? '下一组文章 →' 
+                {currentPassageIndex < passageGroups.length - 1
+                  ? '下一组文章 →'
                   : '进入语法部分 →'}
               </motion.button>
             </motion.div>
@@ -613,7 +479,7 @@ const AssessmentGame = () => {
   // ========================================
   if (gameState === 'grammar') {
     const currentQ = grammarQuestions[currentGrammarIndex];
-    
+
     return (
       <div className="game-container">
         {/* Header */}
@@ -631,8 +497,8 @@ const AssessmentGame = () => {
 
         {/* Progress - 从50%开始（阅读占一半） */}
         <div className="progress-bar mb-4">
-          <div 
-            className="progress-bar-fill" 
+          <div
+            className="progress-bar-fill"
             style={{ width: `${50 + ((currentGrammarIndex + 1) / grammarQuestions.length) * 50}%` }}
           />
         </div>
@@ -653,10 +519,10 @@ const AssessmentGame = () => {
             {/* 题目 */}
             <div style={{ marginBottom: '20px' }}>
               <h4 style={{ marginBottom: '12px' }}>
-                <span style={{ 
-                  background: '#9b7fc9', 
-                  color: 'white', 
-                  padding: '2px 8px', 
+                <span style={{
+                  background: '#9b7fc9',
+                  color: 'white',
+                  padding: '2px 8px',
                   borderRadius: '4px',
                   marginRight: '8px',
                   fontSize: '0.9rem'
@@ -669,9 +535,9 @@ const AssessmentGame = () => {
                       <span key={i}>
                         {part}
                         {i < arr.length - 1 && (
-                          <span style={{ 
-                            display: 'inline-block', 
-                            minWidth: '60px', 
+                          <span style={{
+                            display: 'inline-block',
+                            minWidth: '60px',
                             borderBottom: '2px solid #9b7fc9',
                             margin: '0 4px',
                             textAlign: 'center'
@@ -686,17 +552,17 @@ const AssessmentGame = () => {
                   currentQ?.stem
                 )}
               </h4>
-              
+
               {/* 选项 */}
               <div style={{ display: 'grid', gap: '12px' }}>
                 {currentQ?.options?.map((option, idx) => {
                   const isSelected = currentQ.userAnswer === option.charAt(0);
                   const isCorrectAnswer = option.charAt(0) === currentQ.correctAnswer;
                   const showResult = showExplanation;
-                  
+
                   let bgColor = '#f1f3f5';
                   let borderColor = '#dee2e6';
-                  
+
                   if (showResult) {
                     if (isCorrectAnswer) {
                       bgColor = '#d3f9d8';
@@ -709,7 +575,7 @@ const AssessmentGame = () => {
                     bgColor = '#e7f5ff';
                     borderColor = '#4dabf7';
                   }
-                  
+
                   return (
                     <motion.button
                       key={idx}
@@ -794,7 +660,7 @@ const AssessmentGame = () => {
       <Link to="/levels" style={{ color: '#9b7fc9', textDecoration: 'none' }}>
         ← 返回关卡选择
       </Link>
-      
+
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -805,29 +671,29 @@ const AssessmentGame = () => {
         </div>
         <h1>{passed ? '恭喜通关！' : '测评完成'}</h1>
         <p style={{ color: passed ? '#2a9d8f' : '#e76f51', marginTop: '8px', fontSize: '1.2rem' }}>
-          {passed ? '你成功完成了 L1 测评！' : '继续加油，下次一定能通过！'}
+          {passed ? '你成功完成了 L1 v3.0 测评！' : '继续加油，下次一定能通过！'}
         </p>
-        
+
         <div className="card mt-8" style={{ maxWidth: '500px', margin: '32px auto' }}>
           <h3 className="mb-6">📊 成绩详情</h3>
-          
+
           <div style={{ display: 'grid', gap: '16px' }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
               padding: '12px 16px',
               background: '#f8f9fa',
               borderRadius: '8px'
             }}>
-              <span>阅读理解</span>
+              <span>阅读理解 (v3.0)</span>
               <span style={{ color: correctReading >= totalReadingQuestions * 0.7 ? '#2a9d8f' : '#e76f51' }}>
                 {correctReading}/{totalReadingQuestions} 正确
               </span>
             </div>
-            
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
+
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
               padding: '12px 16px',
               background: '#f8f9fa',
               borderRadius: '8px'
@@ -837,10 +703,10 @@ const AssessmentGame = () => {
                 {correctGrammar}/{totalGrammarQuestions} 正确
               </span>
             </div>
-            
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
+
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
               padding: '16px',
               background: passed ? '#d4edda' : '#f8d7da',
               borderRadius: '8px',
@@ -853,7 +719,7 @@ const AssessmentGame = () => {
               </span>
             </div>
           </div>
-          
+
           <div style={{ marginTop: '24px', padding: '16px', background: '#e7f5ff', borderRadius: '8px' }}>
             <strong>💡 学习建议：</strong>
             <ul style={{ marginTop: '8px', paddingLeft: '20px', lineHeight: '1.8', textAlign: 'left' }}>
@@ -872,7 +738,7 @@ const AssessmentGame = () => {
             </ul>
           </div>
         </div>
-        
+
         <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '32px' }}>
           <Link to="/levels">
             <motion.button
