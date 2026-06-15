@@ -1,7 +1,7 @@
 import { Question, QuestionType, ExamType } from '../../../types';
 
 /**
- * Chapter 7: [章节英文名] - 阅读理解题
+ * Chapter 7: Miss Honey - 阅读理解题
  * 来源: Matilda.md 第X-XX行
  * 
  * 原文引用规范:
@@ -13,18 +13,38 @@ import { Question, QuestionType, ExamType } from '../../../types';
  */
 
 // ============================================
-// 段落 1: [段落标题]
-// 词数: XXX 词
-// 难度: Level 3-4
+// 段落 1: First Impressions of School
+// 词数: 180 词
+// 难度: Level 2
 // ============================================
-export const PASSAGE_7_1 = "";
+export const PASSAGE_7_1 = `Matilda was a little late in starting school. Most children begin Primary School at five or even just before, but Matilda's parents, who weren't very concerned one way or the other about their daughter's education, had forgotten to make the proper arrangements in advance. She was five and a half when she entered school for the first time.
+
+The village school for younger children was a bleak brick building called Crunchem Hall Primary School. It had about two hundred and fifty pupils aged from five to just under twelve years old. The head teacher, the boss, the supreme commander of this establishment was a formidable middle-aged lady whose name was Miss Trunchbull.
+
+Naturally Matilda was put in the bottom class, where there were eighteen other small boys and girls about the same age as her. Their teacher was called Miss Honey, and she could not have been more than twenty-three or twenty-four. She had a lovely pale oval madonna face with blue eyes and her hair was light-brown. Her body was so slim and fragile one got the feeling that if she fell over she would smash into a thousand pieces, like a porcelain figure.`;
 
 // ============================================
-// 段落 2: [段落标题]
-// 词数: XXX 词
-// 难度: Level 3-4
+// 段落 2: Matilda's Talent Revealed
+// 词数: 190 词
+// 难度: Level 2-3
 // ============================================
-export const PASSAGE_7_2 = "";
+export const PASSAGE_7_2 = `"Now then, do any of you happen to have learnt the two-times table already?" Matilda put up her hand. She was the only one.
+
+Matilda stood up and began to say the two-times table. When she got to twice twelve is twenty-four she didn't stop. She went right on with twice thirteen is twenty-six, twice fourteen is twenty-eight, twice fifteen is thirty, twice sixteen is...
+
+"Stop!" Miss Honey said. She had been listening slightly spellbound to this smooth recital.
+
+Miss Honey now decided to ask a question that normally she would not have dreamed of asking the class on its first day.
+
+"I wonder", she said, "whether any of you have learned how to read a whole group of words when they are strung together in a sentence?"
+
+"Can any of you read the whole sentence?" Miss Honey asked, waiting for the "yes" that she felt certain was going to come from Matilda.
+
+"Go ahead," Miss Honey said. Matilda read the sentence without any hesitation at all.
+
+"That really is very good indeed," Miss Honey said, making the understatement of her life. "How much can you read, Matilda?"
+
+"I think I can read most things, Miss Honey," Matilda said, "although I'm afraid I can't always understand the meanings."`;
 
 // ============================================
 // 段落 3: [段落标题]（可选）
@@ -50,23 +70,23 @@ export interface Passage {
 export const CHAPTER7_PASSAGES: Passage[] = [
   {
     id: 'c7-p1',
-    title: '[段落1英文标题]',
-    titleZh: '[段落1中文标题]',
+    title: "First Impressions of School",
+    titleZh: '学校初印象',
     text: PASSAGE_7_1,
-    wordCount: 0, // 产品规划部填写实际词数
+    wordCount: 180,
     difficulty: 2,
-    chapterNumber: 6,
-    chapterTitle: '[章节英文名]'
+    chapterNumber: 7,
+    chapterTitle: 'Miss Honey'
   },
   {
     id: 'c7-p2',
-    title: '[段落2英文标题]',
-    titleZh: '[段落2中文标题]',
+    title: "Matilda's Talent Revealed",
+    titleZh: 'Matilda的天赋展现',
     text: PASSAGE_7_2,
-    wordCount: 0, // 产品规划部填写实际词数
-    difficulty: 3,
-    chapterNumber: 6,
-    chapterTitle: '[章节英文名]'
+    wordCount: 190,
+    difficulty: 2,
+    chapterNumber: 7,
+    chapterTitle: 'Miss Honey'
   }
 ];
 
@@ -83,18 +103,18 @@ export const CHAPTER7_QUESTIONS: Question[] = [
     type: QuestionType.READING_CHOICE,
     difficulty: 2,
     examTypes: [ExamType.ZHONGKAO],
-    stem: "【阅读短文 - 选自 Chapter 7: [章节英文名]】\n" + PASSAGE_7_1 + "\n\n【细节理解】[问题]",
+    stem: "【阅读短文 - 选自 Chapter 7: Miss Honey】\n" + PASSAGE_7_1 + "\n\n【细节理解】Why was Matilda late starting school?",
     options: [
-      'A. [选项A]',
-      'B. [选项B]',
-      'C. [选项C]',
-      'D. [选项D]'
+      'A. Because she was sick.',
+      "B. Because her parents had forgotten to make arrangements.",
+      'C. Because the school was full.',
+      "D. Because she didn't want to go."
     ],
-    correctAnswer: 'A',
-    explanation: '[英文解析]',
-    chineseExplanation: '[中文解析]',
-    relatedWords: ['[关键词1]', '[关键词2]'],
-    relatedGrammar: ['[语法点]'],
+    correctAnswer: 'B',
+    explanation: 'Her parents "weren\'t very concerned" and "had forgotten to make the proper arrangements in advance."',
+    chineseExplanation: '原文说父母"weren\'t very concerned...had forgotten to make the proper arrangements"，所以忘记提前安排入学事宜了。',
+    relatedWords: ['arrangements', 'forgotten', 'education'],
+    relatedGrammar: ['tense-past-perfect'],
     usageCount: 0
   },
   {
@@ -102,37 +122,37 @@ export const CHAPTER7_QUESTIONS: Question[] = [
     type: QuestionType.READING_CHOICE,
     difficulty: 2,
     examTypes: [ExamType.ZHONGKAO],
-    stem: "【阅读短文 - 选自 Chapter 7: [章节英文名]】\n" + PASSAGE_7_1 + "\n\n【推理判断】[问题]",
+    stem: "【阅读短文 - 选自 Chapter 7: Miss Honey】\n" + PASSAGE_7_1 + "\n\n【推理判断】What can be inferred about Miss Honey from the description?",
     options: [
-      'A. [选项A]',
-      'B. [选项B]',
-      'C. [选项C]',
-      'D. [选项D]'
+      'A. She was strict and frightening.',
+      'B. She was young and gentle-looking.',
+      'C. She was old and experienced.',
+      'D. She was tall and strong.'
     ],
     correctAnswer: 'B',
-    explanation: '[英文解析]',
-    chineseExplanation: '[中文解析]',
-    relatedWords: ['[关键词1]', '[关键词2]'],
-    relatedGrammar: ['[语法点]'],
+    explanation: '"lovely pale oval madonna face", "slim and fragile" — these descriptions show she was young, gentle, and delicate.',
+    chineseExplanation: '「lovely pale oval madonna face」「slim and fragile」等描写显示她年轻、温柔、看起来脆弱。',
+    relatedWords: ['slim', 'fragile', 'madonna'],
+    relatedGrammar: ['adjective-description'],
     usageCount: 0
   },
   {
     id: 'c7-p1-q3',
     type: QuestionType.READING_CHOICE,
-    difficulty: 3,
+    difficulty: 1,
     examTypes: [ExamType.ZHONGKAO],
-    stem: "【阅读短文 - 选自 Chapter 7: [章节英文名]】\n" + PASSAGE_7_1 + "\n\n【推理判断/词汇理解】[问题]",
+    stem: "【阅读短文 - 选自 Chapter 7: Miss Honey】\n" + PASSAGE_7_1 + "\n\n【细节理解】What was the name of the school?",
     options: [
-      'A. [选项A]',
-      'B. [选项B]',
-      'C. [选项C]',
-      'D. [选项D]'
+      'A. Wormwood Academy',
+      'B. Crunchem Hall Primary School',
+      "C. Matilda's School for Gifted Children",
+      'D. The Village School of Learning'
     ],
-    correctAnswer: 'C',
-    explanation: '[英文解析]',
-    chineseExplanation: '[中文解析]',
-    relatedWords: ['[关键词1]', '[关键词2]'],
-    relatedGrammar: ['[语法点]'],
+    correctAnswer: 'B',
+    explanation: 'The passage clearly states the school was called "Crunchem Hall Primary School."',
+    chineseExplanation: '原文明确说学校叫"Crunchem Hall Primary School"。',
+    relatedWords: ['Crunchem Hall', 'primary school', 'building'],
+    relatedGrammar: ['noun-proper'],
     usageCount: 0
   },
   
@@ -144,18 +164,18 @@ export const CHAPTER7_QUESTIONS: Question[] = [
     type: QuestionType.READING_CHOICE,
     difficulty: 2,
     examTypes: [ExamType.ZHONGKAO],
-    stem: "【阅读短文 - 选自 Chapter 7: [章节英文名]】\n" + PASSAGE_7_2 + "\n\n【细节理解】[问题]",
+    stem: "【阅读短文 - 选自 Chapter 7: Miss Honey】\n" + PASSAGE_7_2 + "\n\n【细节理解】What happened when Matilda recited the two-times table?",
     options: [
-      'A. [选项A]',
-      'B. [选项B]',
-      'C. [选项C]',
-      'D. [选项D]'
+      'A. She stopped at twelve.',
+      'B. She continued beyond twelve.',
+      'C. She made many mistakes.',
+      'D. She refused to recite it.'
     ],
-    correctAnswer: 'A',
-    explanation: '[英文解析]',
-    chineseExplanation: '[中文解析]',
-    relatedWords: ['[关键词1]', '[关键词2]'],
-    relatedGrammar: ['[语法点]'],
+    correctAnswer: 'B',
+    explanation: 'When Matilda got to twice twelve is twenty-four she didn\'t stop. She went right on with twice thirteen, twice fourteen, etc.',
+    chineseExplanation: 'Matilda 没有停在 twice twelve is twenty-four，而是继续往下背"twice thirteen, twice fourteen..."。',
+    relatedWords: ['two-times table', 'recital', 'smooth'],
+    relatedGrammar: ['tense-past-simple'],
     usageCount: 0
   },
   {
@@ -163,37 +183,56 @@ export const CHAPTER7_QUESTIONS: Question[] = [
     type: QuestionType.READING_CHOICE,
     difficulty: 3,
     examTypes: [ExamType.ZHONGKAO],
-    stem: "【阅读短文 - 选自 Chapter 7: [章节英文名]】\n" + PASSAGE_7_2 + "\n\n【细节理解/推理判断】[问题]",
+    stem: "【阅读短文 - 选自 Chapter 7: Miss Honey】\n" + PASSAGE_7_2 + "\n\n【推理判断】Why did Miss Honey say \"That really is very good indeed\" was \"the understatement of her life\"?",
     options: [
-      'A. [选项A]',
-      'B. [选项B]',
-      'C. [选项C]',
-      'D. [选项D]'
+      'A. Because she was angry with Matilda.',
+      "B. Because she was actually very amazed by Matilda's ability.",
+      "C. Because she didn't believe Matilda could really read.",
+      'D. Because she thought reading was easy.'
     ],
     correctAnswer: 'B',
-    explanation: '[英文解析]',
-    chineseExplanation: '[中文解析]',
-    relatedWords: ['[关键词1]', '[关键词2]'],
-    relatedGrammar: ['[语法点]'],
+    explanation: 'Miss Honey was internally amazed but only said a calm "very good indeed", so the author called it the understatement of her life.',
+    chineseExplanation: 'Miss Honey 内心非常震惊，但只平淡地说了一句"very good indeed"，所以作者说这是她一生中最大的轻描淡写。',
+    relatedWords: ['understatement', 'amazed', 'indeed'],
+    relatedGrammar: ['inference-from-context'],
     usageCount: 0
   },
   {
     id: 'c7-p2-q3',
     type: QuestionType.READING_CHOICE,
+    difficulty: 2,
+    examTypes: [ExamType.ZHONGKAO],
+    stem: "【阅读短文 - 选自 Chapter 7: Miss Honey】\n" + PASSAGE_7_2 + "\n\n【细节理解】What did Matilda say about her reading ability?",
+    options: [
+      "A. She could only read children's books.",
+      "B. She could read most things but didn't always understand the meanings.",
+      "C. She couldn't read any sentences yet.",
+      'D. Her parents taught her to read.'
+    ],
+    correctAnswer: 'B',
+    explanation: 'Matilda said: "I think I can read most things, although I\'m afraid I can\'t always understand the meanings."',
+    chineseExplanation: 'Matilda 说"I think I can read most things, although I\'m afraid I can\'t always understand the meanings."',
+    relatedWords: ['read', 'understand', 'meanings'],
+    relatedGrammar: ['indirect-speech'],
+    usageCount: 0
+  },
+  {
+    id: 'c7-p2-q4',
+    type: QuestionType.READING_CHOICE,
     difficulty: 3,
     examTypes: [ExamType.ZHONGKAO],
-    stem: "【阅读短文 - 选自 Chapter 7: [章节英文名]】\n" + PASSAGE_7_2 + "\n\n【推理判断/词汇理解】[问题]",
+    stem: "【阅读短文 - 选自 Chapter 7: Miss Honey】\n" + PASSAGE_7_2 + "\n\n【词汇理解】The word \"spellbound\" in \"Miss Honey had been listening slightly spellbound\" most nearly means...",
     options: [
-      'A. [选项A]',
-      'B. [选项B]',
-      'C. [选项C]',
-      'D. [选项D]'
+      'A. bored',
+      'B. confused',
+      'C. fascinated',
+      'D. annoyed'
     ],
     correctAnswer: 'C',
-    explanation: '[英文解析]',
-    chineseExplanation: '[中文解析]',
-    relatedWords: ['[关键词1]', '[关键词2]'],
-    relatedGrammar: ['[语法点]'],
+    explanation: 'spellbound means deeply fascinated or captivated, as if under a spell.',
+    chineseExplanation: 'spellbound 意为"入迷的、被迷住的"，描述 Miss Honey 被 Matilda 的表现吸引住了。',
+    relatedWords: ['spellbound', 'fascinated', 'captivated'],
+    relatedGrammar: ['vocabulary-inference'],
     usageCount: 0
   }
 ];
