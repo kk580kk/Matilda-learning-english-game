@@ -8,7 +8,8 @@ import {
   READING_QUESTIONS, 
   GRAMMAR_QUESTIONS, 
   getRandomQuestions,
-  getReadingPassage
+  getReadingPassage,
+  getQuestionsByChapter
 } from '../../data/questions';
 
 // Get L1 config - fallback to first level if not found
@@ -83,32 +84,46 @@ const AssessmentGame = () => {
 
   // 初始化题目
   const initQuestions = useCallback(() => {
-    // 随机选择5道阅读理解题（难度1-2级）
-    const allReading = READING_QUESTIONS.filter(q => 
+    // PRD v3.2: L1 使用 Chapter 1-2 的原著阅读题（难度1-2级）
+    const chapter1Questions = getQuestionsByChapter(1);
+    const chapter2Questions = getQuestionsByChapter(2);
+    const allChapterQuestions = [...chapter1Questions, ...chapter2Questions];
+    
+    // 筛选难度1-2的题目，随机选5道
+    const level1to2Questions = allChapterQuestions.filter(q => 
       q.difficulty! <= 2 && q.examTypes?.includes(ExamType.ZHONGKAO)
     );
-    const randomReading = getRandomQuestions(5) || allReading.slice(0, 5);
+    const shuffled = [...level1to2Questions].sort(() => Math.random() - 0.5);
+    const selectedQuestions = shuffled.slice(0, 5);
     
-    // 使用固定的阅读短文（PRD v3.2：文章固定显示在题目上方）
-    setReadingPassage(getReadingPassage());
+    // 使用 Chapter 1 第一段作为阅读短文（原著原文）
+    const passage = "Nearly every weekday afternoon Matilda was left alone in the house. Her brother (five years older than her) went to school. Her father went to work and her mother went out playing bingo in a town eight miles away. Mrs Wormwood was hooked on bingo and played it five afternoons a week.";
+    setReadingPassage(passage);
     
-    setReadingQuestions(randomReading.map(q => ({
-      id: q.id,
-      type: q.type,
-      stem: q.stem,
-      options: q.options || [],
-      correctAnswer: String(q.correctAnswer),
-      explanation: q.explanation,
-      chineseExplanation: q.chineseExplanation,
-      relatedWords: q.relatedWords,
-      relatedGrammar: q.relatedGrammar
-    })));
+    // 转换题目格式（移除题干中的原文，只保留问题部分）
+    setReadingQuestions(selectedQuestions.map(q => {
+      // 从 stem 中提取问题部分（去掉原文）
+      const stemLines = q.stem.split('\n');
+      const questionLine = stemLines.find(l => l.startsWith('【')) || '请回答以下问题';
+      
+      return {
+        id: q.id,
+        type: q.type,
+        stem: questionLine,
+        options: q.options || [],
+        correctAnswer: String(q.correctAnswer),
+        explanation: q.explanation,
+        chineseExplanation: q.chineseExplanation,
+        relatedWords: q.relatedWords,
+        relatedGrammar: q.relatedGrammar
+      };
+    }));
 
     // 随机选择5道语法/时态题
     const allGrammar = GRAMMAR_QUESTIONS.filter(q => 
       q.difficulty! <= 2
     );
-    const randomGrammar = getRandomQuestions(5) || allGrammar.slice(0, 5);
+    const randomGrammar = allGrammar.slice(0, 5).sort(() => Math.random() - 0.5);
     
     setGrammarQuestions(randomGrammar.map(q => ({
       id: q.id,
@@ -387,12 +402,10 @@ const AssessmentGame = () => {
               border: '2px solid #e9ecef'
             }}>
               <h4 style={{ marginBottom: '12px', color: '#212529', fontWeight: 'bold' }}>📖 阅读短文</h4>
+              <div style={{ fontStyle: 'italic', color: '#6c757d', marginBottom: '8px', fontSize: '0.9rem' }}>
+                选自 Chapter 1: The Reader of Books
+              </div>
               {readingPassage}
-              {(readingPassage.includes('Dear') || readingPassage.includes('— Tom')) && (
-                <div style={{ marginTop: '12px', fontStyle: 'italic', color: '#6c757d' }}>
-                  — Tom
-                </div>
-              )}
             </div>
 
             {/* 题目 */}

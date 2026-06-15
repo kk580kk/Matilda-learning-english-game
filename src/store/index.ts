@@ -7,6 +7,9 @@ export { useUserStore } from './userStore';
 export { useLearningStore } from './learningStore';
 export { useReviewStore, createReviewCardsFromVocabulary, getTodayReviewCards } from './reviewStore';
 
+// Phase 1: P0 剧情系统
+export { useStoryStore } from './storyStore';
+
 // Types re-exports
 export type {
   UserProfile,

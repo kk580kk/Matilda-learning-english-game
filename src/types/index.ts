@@ -672,3 +672,7 @@ export interface BossStats {
   suspicion: number;
   maxSuspicion: number;
 }
+
+
+// Phase 1: P0 剧情系统类型
+export * from "./story";
