@@ -17,21 +17,68 @@ import { Question, QuestionType, ExamType } from '../../../types';
 // 词数: 119 词
 // 难度: Level 1-2
 // ============================================
-const PASSAGE_1_1 = "Nearly every weekday afternoon Matilda was left alone in the house. Her brother (five years older than her) went to school. Her father went to work and her mother went out playing bingo in a town eight miles away. Mrs Wormwood was hooked on bingo and played it five afternoons a week. On the afternoon of the day when her father had refused to buy her a book, Matilda set out all by herself to walk to the public library in the village.";
+export const PASSAGE_1_1 = "Nearly every weekday afternoon Matilda was left alone in the house. Her brother (five years older than her) went to school. Her father went to work and her mother went out playing bingo in a town eight miles away. Mrs Wormwood was hooked on bingo and played it five afternoons a week. On the afternoon of the day when her father had refused to buy her a book, Matilda set out all by herself to walk to the public library in the village.";
 
 // ============================================
 // 段落 2: 在图书馆 (行 21)
 // 词数: 156 词
 // 难度: Level 2-3
 // ============================================
-const PASSAGE_1_2 = "When she arrived, she introduced herself to the librarian, Mrs Phelps. She asked if she might sit awhile and read a book. Mrs Phelps, slightly taken aback at the arrival of such a tiny girl unaccompanied by a parent, nevertheless told her she was very welcome. \"Where are the children's books please?\" Matilda asked. \"They're over there on those lower shelves,\" Mrs Phelps told her. \"Would you like me to help you find a nice one with lots of pictures in it?\" \"No, thank you,\" Matilda said. \"I'm sure I can manage.\"";
+export const PASSAGE_1_2 = "When she arrived, she introduced herself to the librarian, Mrs Phelps. She asked if she might sit awhile and read a book. Mrs Phelps, slightly taken aback at the arrival of such a tiny girl unaccompanied by a parent, nevertheless told her she was very welcome. \"Where are the children's books please?\" Matilda asked. \"They're over there on those lower shelves,\" Mrs Phelps told her. \"Would you like me to help you find a nice one with lots of pictures in it?\" \"No, thank you,\" Matilda said. \"I'm sure I can manage.\"";
 
 // ============================================
 // 段落 3: Matilda 的阅读习惯 (行 27)
 // 词数: 142 词
 // 难度: Level 3-4
 // ============================================
-const PASSAGE_1_3 = "From then on, every afternoon, as soon as her mother had left for bingo, Matilda would toddle down to the library. The walk took only ten minutes and this allowed her two glorious hours sitting quietly by herself in a cosy corner devouring one book after another. When she had read every single children's book in the place, she started wandering round in search of something else.";
+export const PASSAGE_1_3 = "From then on, every afternoon, as soon as her mother had left for bingo, Matilda would toddle down to the library. The walk took only ten minutes and this allowed her two glorious hours sitting quietly by herself in a cosy corner devouring one book after another. When she had read every single children's book in the place, she started wandering round in search of something else.";
+
+// ============================================
+// 段落定义（用于关卡渲染）
+// ============================================
+export interface Passage {
+  id: string;
+  title: string;
+  titleZh: string;
+  text: string;
+  wordCount: number;
+  difficulty: number;
+  chapterNumber: number;
+  chapterTitle: string;
+}
+
+export const CHAPTER1_PASSAGES: Passage[] = [
+  {
+    id: 'c1-p1',
+    title: 'Matilda Goes to the Library',
+    titleZh: 'Matilda 去图书馆',
+    text: PASSAGE_1_1,
+    wordCount: 119,
+    difficulty: 1,
+    chapterNumber: 1,
+    chapterTitle: 'The Reader of Books'
+  },
+  {
+    id: 'c1-p2',
+    title: 'At the Library',
+    titleZh: '在图书馆',
+    text: PASSAGE_1_2,
+    wordCount: 156,
+    difficulty: 2,
+    chapterNumber: 1,
+    chapterTitle: 'The Reader of Books'
+  },
+  {
+    id: 'c1-p3',
+    title: 'Matilda\'s Reading Habit',
+    titleZh: 'Matilda 的阅读习惯',
+    text: PASSAGE_1_3,
+    wordCount: 142,
+    difficulty: 3,
+    chapterNumber: 1,
+    chapterTitle: 'The Reader of Books'
+  }
+];
 
 // ============================================
 // 阅读理解题数据
@@ -295,6 +342,41 @@ export const getPassageStats = () => {
     { id: 'c1-p2', title: '在图书馆', wordCount: 156, difficulty: 'Level 2-3', questions: 4 },
     { id: 'c1-p3', title: 'Matilda 的阅读习惯', wordCount: 142, difficulty: 'Level 3-4', questions: 4 }
   ];
+};
+
+/**
+ * 根据段落ID获取题目
+ * 用于关卡渲染：一段文章 + 多题绑定
+ */
+export const getQuestionsByPassageId = (passageId: string): Question[] => {
+  return CHAPTER1_QUESTIONS.filter(q => q.id.startsWith(passageId));
+};
+
+/**
+ * 获取段落和题目的绑定组
+ * 用于关卡渲染，返回 [{passage, questions}, ...]
+ */
+export interface PassageQuestionGroup {
+  passage: Passage;
+  questions: Question[];
+}
+
+export const getPassageQuestionGroups = (): PassageQuestionGroup[] => {
+  return CHAPTER1_PASSAGES.map(passage => ({
+    passage,
+    questions: getQuestionsByPassageId(passage.id)
+  }));
+};
+
+/**
+ * 获取指定难度范围的段落组（用于L1关卡）
+ * L1使用难度1-2的段落
+ */
+export const getPassageGroupsByDifficulty = (minDifficulty: number, maxDifficulty: number): PassageQuestionGroup[] => {
+  const groups = getPassageQuestionGroups();
+  return groups.filter(group => 
+    group.passage.difficulty >= minDifficulty && group.passage.difficulty <= maxDifficulty
+  );
 };
 
 export default CHAPTER1_QUESTIONS;
