@@ -95,14 +95,17 @@ const AssessmentGame = () => {
     const formattedGroups = level1to2Groups.map(group => ({
       passage: group.passage,
       questions: group.questions.map(q => {
-        // 从 stem 中提取问题部分（去掉原文）
+        // 从 stem 中提取问题部分（去掉原文，保留题型标签和问题）
+        // stem 格式: 【阅读短文...】\n原文\n\n【题型】问题
         const lines = q.stem.split('\n');
-        const questionLine = lines.find(l => l.startsWith('【')) || '请回答以下问题';
+        // 找到最后一个以【开头的行（题型+问题）
+        const questionLines = lines.filter(l => l.startsWith('【'));
+        const lastQuestionLine = questionLines[questionLines.length - 1] || '请回答以下问题';
         
         return {
           id: q.id,
           type: q.type,
-          stem: questionLine,
+          stem: lastQuestionLine,
           options: q.options || [],
           correctAnswer: String(q.correctAnswer),
           explanation: q.explanation,
@@ -436,7 +439,7 @@ const AssessmentGame = () => {
 
           {/* 所有题目 - 单页显示 */}
           <div style={{ marginBottom: '20px' }}>
-            <h3 style={{ marginBottom: '24px', fontSize: '1.2rem', color: '#495057' }}>
+            <h3 style={{ marginBottom: '24px', fontSize: '1.2rem', color: '#1a1a1a', fontWeight: 'bold' }}>
               📝 阅读理解题目
             </h3>
             
