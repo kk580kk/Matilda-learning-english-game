@@ -439,7 +439,17 @@ const AssessmentGame = () => {
 
           {/* 所有题目 - 单页显示 */}
           <div style={{ marginBottom: '20px' }}>
-            <h3 style={{ marginBottom: '24px', fontSize: '1.2rem', color: '#1a1a1a', fontWeight: 'bold' }}>
+            <h3 style={{ 
+              marginBottom: '24px', 
+              fontSize: '1.3rem', 
+              color: '#ffffff', 
+              fontWeight: 'bold',
+              textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+              padding: '12px 16px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              borderRadius: '8px',
+              textAlign: 'center'
+            }}>
               📝 阅读理解题目
             </h3>
             
