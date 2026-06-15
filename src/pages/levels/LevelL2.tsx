@@ -1,9 +1,13 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLevelStore, useAchievementStore } from '../../store';
+import { useLevelStore, useAchievementStore, useGameStore } from '../../store';
 import { getLevelConfig, LEVEL_CONFIGS } from '../../data/levels/config';
-import { LearningPhase } from '../../types';
+import { LearningPhase, ExamType } from '../../types';
+import { 
+  GRAMMAR_QUESTIONS, 
+  getQuestionsByChapter
+} from '../../data/questions';
 
 // Get L2 config - fallback to second level if not found
 const LEVEL_CONFIG = getLevelConfig('L2') || LEVEL_CONFIGS[1];
@@ -36,105 +40,214 @@ const getObjectives = () => {
   return objectives;
 };
 
-interface HiddenItem {
+interface QuizQuestion {
   id: string;
-  name: string;
-  emoji: string;
-  found: boolean;
-  x: number;
-  y: number;
+  type: string;
+  stem: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+  chineseExplanation?: string;
+  relatedWords?: string[];
+  relatedGrammar?: string[];
+  userAnswer?: string;
+  isCorrect?: boolean;
 }
 
-const HIDDEN_ITEMS: HiddenItem[] = [
-  { id: 'contract', name: '欺诈合同', emoji: '📄', found: false, x: 15, y: 20 },
-  { id: 'money', name: '脏钱', emoji: '💰', found: false, x: 70, y: 30 },
-  { id: 'ledger', name: '账本', emoji: '📒', found: false, x: 40, y: 60 },
-  { id: 'phone', name: '可疑电话', emoji: '📞', found: false, x: 80, y: 70 },
-  { id: 'photo', name: '证据照片', emoji: '📸', found: false, x: 25, y: 45 },
-];
-
-const LEVEL2_SCENE = `
-  ┌─────────────────────────────────────────────────────────┐
-  │  ╔═════════════╗                      ╔═════════════╗  │
-  │  ║   书架       ║   ┌──────────┐      ║   保险箱    ║  │
-  │  ╚═════════════╝   │   桌子   ║      ╚═════════════╝  │
-  │                    └──────────┘                        │
-  │   🖼️                      💼                          │
-  │                                                         │
-  │  ┌──────────┐     👤            ┌──────────┐         │
-  │  │   椅子   ║   (父亲)          │   沙发   ║         │
-  │  └──────────┘                   └──────────┘         │
-  │                                                         │
-  │   📺                                    🪴              │
-  │                                                         │
-  └─────────────────────────────────────────────────────────┘
-`;
-
-const HiddenObjectGame = () => {
-  const { startLevel, completeLevel } = useLevelStore();
+const AssessmentGame = () => {
+  const { completeLevel } = useLevelStore();
   const { unlockAchievement } = useAchievementStore();
+  const { startGame, endGame } = useGameStore();
 
-  const [gameState, setGameState] = useState<'intro' | 'playing' | 'choice' | 'finished'>('intro');
-  const [items, setItems] = useState<HiddenItem[]>(HIDDEN_ITEMS);
-  const [foundCount, setFoundCount] = useState(0);
-  const [clickEffect, setClickEffect] = useState<{ x: number; y: number; isFound: boolean } | null>(null);
+  const [gameState, setGameState] = useState<'intro' | 'reading' | 'grammar' | 'results'>('intro');
+  const [readingQuestions, setReadingQuestions] = useState<QuizQuestion[]>([]);
+  const [grammarQuestions, setGrammarQuestions] = useState<QuizQuestion[]>([]);
+  const [currentReadingIndex, setCurrentReadingIndex] = useState(0);
+  const [currentGrammarIndex, setCurrentGrammarIndex] = useState(0);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(600); // 10分钟
+  const [score, setScore] = useState(0);
+  const [readingScore, setReadingScore] = useState(0);
+  const [grammarScore, setGrammarScore] = useState(0);
+  const [readingPassage, setReadingPassage] = useState('');
 
-  const totalItems = items.length;
+  // 初始化题目
+  const initQuestions = useCallback(() => {
+    // PRD v3.2: L2 使用 Chapter 4-5 的原著阅读题（难度2-3级）
+    const chapter4Questions = getQuestionsByChapter(4);
+    const chapter5Questions = getQuestionsByChapter(5);
+    const allChapterQuestions = [...chapter4Questions, ...chapter5Questions];
+    
+    // 筛选难度2-3的题目，随机选5道
+    const level2to3Questions = allChapterQuestions.filter(q => 
+      q.difficulty! >= 2 && q.difficulty! <= 3 && q.examTypes?.includes(ExamType.ZHONGKAO)
+    );
+    const shuffled = [...level2to3Questions].sort(() => Math.random() - 0.5);
+    const selectedQuestions = shuffled.slice(0, 5);
+    
+    // 使用 Chapter 4 第一段作为阅读短文（原著原文）
+    const passage = "There was comparative calm in the Wormwood household for about a week after the Superglue episode. The experience had clearly chastened Mr Wormwood and he seemed temporarily to have lost his taste for boasting and bullying. Then suddenly he struck again. Perhaps he had had a bad day at the garage and had not sold enough crummy second-hand cars. There are many things that make a man irritable when he arrives home from work in the evening and a sensible wife will usually notice the storm-signals and will leave him alone until he simmers down.";
+    setReadingPassage(passage);
+    
+    // 转换题目格式（移除题干中的原文，只保留问题部分）
+    setReadingQuestions(selectedQuestions.map(q => {
+      // 从 stem 中提取问题部分（去掉原文）
+      const stemLines = q.stem.split('\n');
+      const questionLine = stemLines.find(l => l.startsWith('【')) || '请回答以下问题';
+      
+      return {
+        id: q.id,
+        type: q.type,
+        stem: questionLine,
+        options: q.options || [],
+        correctAnswer: String(q.correctAnswer),
+        explanation: q.explanation,
+        chineseExplanation: q.chineseExplanation,
+        relatedWords: q.relatedWords,
+        relatedGrammar: q.relatedGrammar
+      };
+    }));
 
-  const initGame = useCallback(() => {
-    setItems(HIDDEN_ITEMS.map(item => ({ ...item, found: false })));
-    setFoundCount(0);
+    // 随机选择5道语法/时态题
+    const allGrammar = GRAMMAR_QUESTIONS.filter(q => 
+      q.difficulty! >= 2 && q.difficulty! <= 3
+    );
+    const randomGrammar = allGrammar.slice(0, 5).sort(() => Math.random() - 0.5);
+    
+    setGrammarQuestions(randomGrammar.map(q => ({
+      id: q.id,
+      type: q.type,
+      stem: q.stem.includes('___') ? q.stem : `请选择正确的时态形式：\n${q.stem}`,
+      options: q.options || [],
+      correctAnswer: String(q.correctAnswer),
+      explanation: q.explanation,
+      chineseExplanation: q.chineseExplanation,
+      relatedWords: q.relatedWords,
+      relatedGrammar: q.relatedGrammar
+    })));
+
+    setCurrentReadingIndex(0);
+    setCurrentGrammarIndex(0);
+    setScore(0);
+    setReadingScore(0);
+    setGrammarScore(0);
+    setShowExplanation(false);
+    setTimeLeft(600);
   }, []);
 
-  const startPlaying = () => {
-    initGame();
-    setGameState('playing');
-    startLevel('L2');
-  };
-
-  const handleSceneClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (gameState !== 'playing') return;
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-    // Check if click is near any hidden item
-    const clickedItem = items.find(item => {
-      const distance = Math.sqrt(
-        Math.pow(x - item.x, 2) + Math.pow(y - item.y, 2)
-      );
-      return distance < 10 && !item.found;
-    });
-
-    if (clickedItem) {
-      // Found item
-      setItems(prev => prev.map(item => 
-        item.id === clickedItem.id ? { ...item, found: true } : item
-      ));
-      setFoundCount(prev => {
-        const newCount = prev + 1;
-        
-        // Check all found
-        if (newCount === totalItems) {
-          setTimeout(() => {
-            setGameState('choice');
-            completeLevel('L2', 100);
-            unlockAchievement('first_book');
-          }, 1000);
-        }
-        
-        return newCount;
-      });
-      setClickEffect({ x: e.clientX, y: e.clientY, isFound: true });
-    } else {
-      setClickEffect({ x: e.clientX, y: e.clientY, isFound: false });
+  // 计时器
+  useEffect(() => {
+    if (gameState === 'reading' || gameState === 'grammar') {
+      if (timeLeft > 0) {
+        const timer = setTimeout(() => setTimeLeft(t => t - 1), 1000);
+        return () => clearTimeout(timer);
+      } else {
+        // 时间到，计算最终成绩
+        handleFinish();
+      }
     }
+  }, [timeLeft, gameState]);
 
-    setTimeout(() => setClickEffect(null), 500);
+  const startPlaying = () => {
+    initQuestions();
+    setGameState('reading');
+    startGame();
   };
 
-  // Render intro
+  // 处理阅读理解答题
+  const handleReadingAnswer = (answer: string) => {
+    const currentQ = readingQuestions[currentReadingIndex];
+    const isCorrect = answer === currentQ.correctAnswer;
+    
+    const updatedQuestions = [...readingQuestions];
+    updatedQuestions[currentReadingIndex] = {
+      ...currentQ,
+      userAnswer: answer,
+      isCorrect
+    };
+    setReadingQuestions(updatedQuestions);
+    
+    if (isCorrect) {
+      setReadingScore(s => s + 1);
+      setScore(s => s + 10);
+    }
+    
+    setShowExplanation(true);
+  };
+
+  // 处理语法/时态答题
+  const handleGrammarAnswer = (answer: string) => {
+    const currentQ = grammarQuestions[currentGrammarIndex];
+    const isCorrect = answer === currentQ.correctAnswer;
+    
+    const updatedQuestions = [...grammarQuestions];
+    updatedQuestions[currentGrammarIndex] = {
+      ...currentQ,
+      userAnswer: answer,
+      isCorrect
+    };
+    setGrammarQuestions(updatedQuestions);
+    
+    if (isCorrect) {
+      setGrammarScore(s => s + 1);
+      setScore(s => s + 10);
+    }
+    
+    setShowExplanation(true);
+  };
+
+  // 下一题
+  const handleNextQuestion = () => {
+    setShowExplanation(false);
+    
+    if (gameState === 'reading') {
+      if (currentReadingIndex < readingQuestions.length - 1) {
+        setCurrentReadingIndex(i => i + 1);
+      } else {
+        // 阅读完成，进入语法
+        setCurrentReadingIndex(0);
+        setGameState('grammar');
+      }
+    } else if (gameState === 'grammar') {
+      if (currentGrammarIndex < grammarQuestions.length - 1) {
+        setCurrentGrammarIndex(i => i + 1);
+      } else {
+        // 全部完成
+        handleFinish();
+      }
+    }
+  };
+
+  // 完成测评
+  const handleFinish = () => {
+    setGameState('results');
+    endGame();
+    
+    const totalQuestions = readingQuestions.length + grammarQuestions.length;
+    const correctCount = readingScore + grammarScore;
+    const finalScore = Math.round((correctCount / totalQuestions) * 100);
+    
+    completeLevel('L2', finalScore);
+    
+    // 解锁成就
+    if (finalScore >= 90) {
+      unlockAchievement('perfect_score');
+    }
+    if (finalScore >= 70) {
+      unlockAchievement('assessment_pass');
+    }
+  };
+
+  // 格式化时间
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // ========================================
+  // 渲染：介绍页
+  // ========================================
   if (gameState === 'intro') {
     return (
       <div className="game-container">
@@ -147,7 +260,7 @@ const HiddenObjectGame = () => {
           animate={{ opacity: 1 }}
           className="text-center mt-8"
         >
-          <div style={{ fontSize: '4rem', marginBottom: '16px' }}>🔍🏠</div>
+          <div style={{ fontSize: '4rem', marginBottom: '16px' }}>📚✍️</div>
           <h1>{LEVEL_CONFIG.title}</h1>
           <p style={{ color: '#b8c1ec', marginTop: '8px' }}>{LEVEL_CONFIG.titleEn}</p>
           
@@ -169,11 +282,12 @@ const HiddenObjectGame = () => {
               <li>难度: {'★'.repeat(LEVEL_CONFIG.difficulty)}{'☆'.repeat(5 - LEVEL_CONFIG.difficulty)}</li>
             </ul>
             
-            <h3 className="mt-8 mb-4">🔍 寻找物品</h3>
+            <h3 className="mt-8 mb-4">📝 测评内容</h3>
             <ul style={{ paddingLeft: '20px', lineHeight: '2' }}>
-              {HIDDEN_ITEMS.map((item, i) => (
-                <li key={i}>{item.emoji} {item.name}</li>
-              ))}
+              <li>✅ 阅读理解（1篇短文 + 5道选择题）</li>
+              <li>✅ 定语从句语法题（5道选择题）</li>
+              <li>⏱️ 答题时间：10分钟</li>
+              <li>📊 及格分数：70分</li>
             </ul>
           </div>
           
@@ -184,15 +298,19 @@ const HiddenObjectGame = () => {
             onClick={startPlaying}
             style={{ fontSize: '1.3rem', padding: '16px 48px' }}
           >
-            开始调查
+            开始测评
           </motion.button>
         </motion.div>
       </div>
     );
   }
 
-  // Render playing
-  if (gameState === 'playing') {
+  // ========================================
+  // 渲染：阅读理解
+  // ========================================
+  if (gameState === 'reading') {
+    const currentQ = readingQuestions[currentReadingIndex];
+    
     return (
       <div className="game-container">
         {/* Header */}
@@ -200,10 +318,11 @@ const HiddenObjectGame = () => {
           <Link to="/levels" style={{ color: '#9b7fc9', textDecoration: 'none' }}>
             ← 退出
           </Link>
-          <div>
-            <span style={{ color: '#2a9d8f' }}>
-              已找到 {foundCount} / {totalItems}
+          <div className="flex gap-4">
+            <span style={{ color: timeLeft < 60 ? '#e76f51' : '#f4a261' }}>
+              ⏱️ {formatTime(timeLeft)}
             </span>
+            <span style={{ color: '#2a9d8f' }}>🏆 {score}分</span>
           </div>
         </div>
 
@@ -211,146 +330,307 @@ const HiddenObjectGame = () => {
         <div className="progress-bar mb-4">
           <div 
             className="progress-bar-fill" 
-            style={{ width: `${(foundCount / totalItems) * 100}%` }}
+            style={{ width: `${((currentReadingIndex + 1) / readingQuestions.length) * 50}%` }}
           />
         </div>
 
-        {/* Items to find */}
-        <div className="flex gap-2 mb-4 flex-wrap">
-          {items.map(item => (
-            <span 
-              key={item.id}
-              style={{ 
-                padding: '4px 12px',
-                background: item.found ? '#2a9d8f' : 'rgba(255,255,255,0.1)',
-                borderRadius: '20px',
-                fontSize: '0.9rem',
-                opacity: item.found ? 0.6 : 1
-              }}
-            >
-              {item.found ? '✅' : item.emoji} {item.name}
-            </span>
-          ))}
+        <div className="text-center mb-2" style={{ color: '#888' }}>
+          阅读理解 · 第 {currentReadingIndex + 1}/{readingQuestions.length} 题
         </div>
 
-        {/* Scene */}
-        <div 
-          className="card"
-          style={{ 
-            position: 'relative',
-            minHeight: '400px',
-            cursor: 'crosshair',
-            background: 'linear-gradient(180deg, #2a2a4a 0%, #1a1a2e 100%)'
-          }}
-          onClick={handleSceneClick}
-        >
-          {/* Simple room visualization */}
-          <div style={{ 
-            width: '100%', 
-            height: '400px', 
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontFamily: 'monospace',
-            fontSize: '0.7rem',
-            color: '#666',
-            whiteSpace: 'pre'
-          }}>
-            {LEVEL2_SCENE}
-          </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentQ?.id}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="card"
+            style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'left' }}
+          >
+            {/* 短文阅读区域 */}
+            <div style={{ 
+              background: '#ffffff', 
+              padding: '20px', 
+              borderRadius: '8px',
+              marginBottom: '20px',
+              maxHeight: '200px',
+              overflowY: 'auto',
+              fontFamily: 'Georgia, serif',
+              lineHeight: '1.8',
+              fontSize: '1rem',
+              color: '#1a1a1a',
+              border: '2px solid #e9ecef'
+            }}>
+              <h4 style={{ marginBottom: '12px', color: '#212529', fontWeight: 'bold' }}>📖 阅读短文</h4>
+              <div style={{ fontStyle: 'italic', color: '#6c757d', marginBottom: '8px', fontSize: '0.9rem' }}>
+                选自 Chapter 4: The Ghost
+              </div>
+              {readingPassage}
+            </div>
 
-          {/* Click effects */}
-          <AnimatePresence>
-            {clickEffect && (
+            {/* 题目 */}
+            <div style={{ marginBottom: '20px' }}>
+              <h4 style={{ marginBottom: '12px' }}>
+                <span style={{ 
+                  background: '#6366f1', 
+                  color: 'white', 
+                  padding: '2px 8px', 
+                  borderRadius: '4px',
+                  marginRight: '8px',
+                  fontSize: '0.9rem'
+                }}>
+                  {currentReadingIndex + 1}
+                </span>
+                {currentQ?.stem}
+              </h4>
+              
+              {/* 选项 */}
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {currentQ?.options?.map((option, idx) => {
+                  const isSelected = currentQ.userAnswer === option.charAt(0);
+                  const isCorrectAnswer = option.charAt(0) === currentQ.correctAnswer;
+                  const showResult = showExplanation;
+                  
+                  let bgColor = '#f1f3f5';
+                  let borderColor = '#dee2e6';
+                  
+                  if (showResult) {
+                    if (isCorrectAnswer) {
+                      bgColor = '#d3f9d8';
+                      borderColor = '#40c057';
+                    } else if (isSelected) {
+                      bgColor = '#ffe3e3';
+                      borderColor = '#fa5252';
+                    }
+                  } else if (isSelected) {
+                    bgColor = '#e7f5ff';
+                    borderColor = '#4dabf7';
+                  }
+                  
+                  return (
+                    <motion.button
+                      key={idx}
+                      whileHover={!showExplanation ? { scale: 1.01 } : {}}
+                      whileTap={!showExplanation ? { scale: 0.99 } : {}}
+                      onClick={() => !showExplanation && handleReadingAnswer(option.charAt(0))}
+                      disabled={showExplanation}
+                      style={{
+                        padding: '14px 16px',
+                        borderRadius: '8px',
+                        border: `2px solid ${borderColor}`,
+                        background: bgColor,
+                        textAlign: 'left',
+                        cursor: showExplanation ? 'default' : 'pointer',
+                        fontSize: '1rem',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {option}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 解析 */}
+            {showExplanation && (
               <motion.div
-                initial={{ scale: 0, opacity: 1 }}
-                animate={{ scale: 1.5, opacity: 0 }}
-                exit={{ opacity: 0 }}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
                 style={{
-                  position: 'fixed',
-                  left: clickEffect.x,
-                  top: clickEffect.y,
-                  transform: 'translate(-50%, -50%)',
-                  pointerEvents: 'none',
-                  fontSize: '2rem'
+                  background: currentQ?.isCorrect ? '#d4edda' : '#f8d7da',
+                  border: currentQ?.isCorrect ? '2px solid #28a745' : '2px solid #dc3545',
+                  padding: '16px',
+                  borderRadius: '8px',
+                  marginTop: '16px',
+                  color: '#1a1a1a'
                 }}
               >
-                {clickEffect.isFound ? '✨' : '💨'}
+                <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '8px' }}>
+                  {currentQ?.isCorrect ? '✅ 回答正确！' : '❌ 回答错误，正确答案是 ' + currentQ?.correctAnswer}
+                </div>
+                <div style={{ marginBottom: '12px', fontSize: '1rem' }}>
+                  <strong>📝 解析：</strong>{currentQ?.chineseExplanation || currentQ?.explanation}
+                </div>
+                <motion.button
+                  className="btn btn-primary"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleNextQuestion}
+                  style={{ marginTop: '12px' }}
+                >
+                  {currentReadingIndex < readingQuestions.length - 1 ? '下一题 →' : '进入语法题 →'}
+                </motion.button>
               </motion.div>
             )}
-          </AnimatePresence>
-        </div>
-
-        {/* Hint */}
-        <div className="text-center mt-4" style={{ color: '#888' }}>
-          <p>点击场景中隐藏的物品位置 (约10%误差范围内)</p>
-        </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     );
   }
 
-  // Render choice
-  if (gameState === 'choice') {
+  // ========================================
+  // 渲染：语法题
+  // ========================================
+  if (gameState === 'grammar') {
+    const currentQ = grammarQuestions[currentGrammarIndex];
+    
     return (
       <div className="game-container">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center"
-        >
-          <div style={{ fontSize: '4rem', marginBottom: '16px' }}>🔎✨</div>
-          <h1>证据收集完成!</h1>
-          
-          <p style={{ color: '#b8c1ec', marginTop: '16px', marginBottom: '32px' }}>
-            你找到了所有证据。现在，你该如何处理这个秘密?
-          </p>
-
-          <div className="flex flex-col gap-4" style={{ maxWidth: '500px', margin: '0 auto' }}>
-            <motion.button
-              className="btn btn-primary"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setGameState('finished')}
-              style={{ padding: '20px', textAlign: 'left' }}
-            >
-              <h3>告诉妈妈</h3>
-              <p style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '4px' }}>
-                坦诚面对家庭问题
-              </p>
-            </motion.button>
-
-            <motion.button
-              className="btn btn-accent"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setGameState('finished')}
-              style={{ padding: '20px', textAlign: 'left', color: '#1a1a2e' }}
-            >
-              <h3>设计恶作剧</h3>
-              <p style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '4px' }}>
-                用智慧小小惩罚一下
-              </p>
-            </motion.button>
-
-            <motion.button
-              className="btn btn-secondary"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setGameState('finished')}
-              style={{ padding: '20px', textAlign: 'left' }}
-            >
-              <h3>保持沉默</h3>
-              <p style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '4px' }}>
-                内心挣扎，先观察
-              </p>
-            </motion.button>
+        {/* Header */}
+        <div className="flex justify-between items-center mb-4">
+          <Link to="/levels" style={{ color: '#9b7fc9', textDecoration: 'none' }}>
+            ← 退出
+          </Link>
+          <div className="flex gap-4">
+            <span style={{ color: timeLeft < 60 ? '#e76f51' : '#f4a261' }}>
+              ⏱️ {formatTime(timeLeft)}
+            </span>
+            <span style={{ color: '#2a9d8f' }}>🏆 {score}分</span>
           </div>
-        </motion.div>
+        </div>
+
+        {/* Progress */}
+        <div className="progress-bar mb-4">
+          <div 
+            className="progress-bar-fill" 
+            style={{ width: `${50 + ((currentGrammarIndex + 1) / grammarQuestions.length) * 50}%` }}
+          />
+        </div>
+
+        <div className="text-center mb-2" style={{ color: '#888' }}>
+          定语从句语法 · 第 {currentGrammarIndex + 1}/{grammarQuestions.length} 题
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentQ?.id}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="card"
+            style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'left' }}
+          >
+            {/* 题目 */}
+            <div style={{ marginBottom: '20px' }}>
+              <h4 style={{ marginBottom: '12px' }}>
+                <span style={{ 
+                  background: '#e76f51', 
+                  color: 'white', 
+                  padding: '2px 8px', 
+                  borderRadius: '4px',
+                  marginRight: '8px',
+                  fontSize: '0.9rem'
+                }}>
+                  {currentGrammarIndex + 1}
+                </span>
+                {currentQ?.stem?.split('\n').map((line, i) => (
+                  <div key={i} style={{ 
+                    fontFamily: line.includes('___') ? 'monospace' : 'inherit',
+                    background: line.includes('___') ? '#f8f9fa' : 'transparent',
+                    padding: line.includes('___') ? '12px' : '0',
+                    borderRadius: line.includes('___') ? '4px' : '0',
+                    marginTop: line.includes('___') ? '8px' : '0',
+                    fontSize: line.includes('___') ? '1.1rem' : 'inherit'
+                  }}>
+                    {line}
+                  </div>
+                ))}
+              </h4>
+              
+              {/* 选项 */}
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {currentQ?.options?.map((option, idx) => {
+                  const isSelected = currentQ.userAnswer === option.charAt(0);
+                  const isCorrectAnswer = option.charAt(0) === currentQ.correctAnswer;
+                  const showResult = showExplanation;
+                  
+                  let bgColor = '#f1f3f5';
+                  let borderColor = '#dee2e6';
+                  
+                  if (showResult) {
+                    if (isCorrectAnswer) {
+                      bgColor = '#d3f9d8';
+                      borderColor = '#40c057';
+                    } else if (isSelected) {
+                      bgColor = '#ffe3e3';
+                      borderColor = '#fa5252';
+                    }
+                  } else if (isSelected) {
+                    bgColor = '#e7f5ff';
+                    borderColor = '#4dabf7';
+                  }
+                  
+                  return (
+                    <motion.button
+                      key={idx}
+                      whileHover={!showExplanation ? { scale: 1.01 } : {}}
+                      whileTap={!showExplanation ? { scale: 0.99 } : {}}
+                      onClick={() => !showExplanation && handleGrammarAnswer(option.charAt(0))}
+                      disabled={showExplanation}
+                      style={{
+                        padding: '14px 16px',
+                        borderRadius: '8px',
+                        border: `2px solid ${borderColor}`,
+                        background: bgColor,
+                        textAlign: 'left',
+                        cursor: showExplanation ? 'default' : 'pointer',
+                        fontSize: '1rem',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {option}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 解析 */}
+            {showExplanation && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                style={{
+                  background: currentQ?.isCorrect ? '#d4edda' : '#f8d7da',
+                  border: currentQ?.isCorrect ? '2px solid #28a745' : '2px solid #dc3545',
+                  padding: '16px',
+                  borderRadius: '8px',
+                  marginTop: '16px',
+                  color: '#1a1a1a'
+                }}
+              >
+                <div style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '8px' }}>
+                  {currentQ?.isCorrect ? '✅ 回答正确！' : '❌ 回答错误，正确答案是 ' + currentQ?.correctAnswer}
+                </div>
+                <div style={{ marginBottom: '12px', fontSize: '1rem' }}>
+                  <strong>📝 解析：</strong>{currentQ?.chineseExplanation || currentQ?.explanation}
+                </div>
+                <motion.button
+                  className="btn btn-primary"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleNextQuestion}
+                  style={{ marginTop: '12px' }}
+                >
+                  {currentGrammarIndex < grammarQuestions.length - 1 ? '下一题 →' : '查看结果 →'}
+                </motion.button>
+              </motion.div>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
     );
   }
 
-  // Render finished
+  // ========================================
+  // 渲染：结果页
+  // ========================================
+  const totalQuestions = readingQuestions.length + grammarQuestions.length;
+  const correctCount = readingScore + grammarScore;
+  const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+  const passed = accuracy >= 70;
+
   return (
     <div className="game-container">
       <motion.div
@@ -358,28 +638,62 @@ const HiddenObjectGame = () => {
         animate={{ opacity: 1, scale: 1 }}
         className="text-center"
       >
-        <div style={{ fontSize: '5rem', marginBottom: '16px' }}>✅</div>
-        <h1>关卡完成!</h1>
+        <div style={{ fontSize: '5rem', marginBottom: '16px' }}>
+          {passed ? '🎉' : '📝'}
+        </div>
+        <h1>{passed ? '恭喜通过！' : '继续加油！'}</h1>
         
         <div className="card mt-8" style={{ maxWidth: '400px', margin: '24px auto' }}>
-          <p>你做出了自己的选择。</p>
-          <p style={{ marginTop: '8px', color: '#b8c1ec' }}>
-            玛蒂尔达的冒险仍在继续...
+          <div style={{ fontSize: '3rem', fontWeight: 'bold', color: passed ? '#2a9d8f' : '#e76f51' }}>
+            {accuracy}分
+          </div>
+          <p style={{ marginTop: '8px', color: '#888' }}>
+            正确率：{correctCount}/{totalQuestions} 题
           </p>
+          
+          <div style={{ marginTop: '16px', padding: '12px', background: '#f8f9fa', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span>阅读理解：</span>
+              <span style={{ color: '#2a9d8f' }}>{readingScore}/{readingQuestions.length}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>定语从句：</span>
+              <span style={{ color: '#2a9d8f' }}>{grammarScore}/{grammarQuestions.length}</span>
+            </div>
+          </div>
+          
+          {!passed && (
+            <p style={{ marginTop: '16px', color: '#e76f51' }}>
+              需要 70 分才能通过，再试一次吧！
+            </p>
+          )}
         </div>
 
-        <Link to="/levels">
-          <motion.button
-            className="btn btn-primary"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            返回关卡选择
-          </motion.button>
-        </Link>
+        <div className="flex gap-4 justify-center">
+          {!passed && (
+            <motion.button
+              className="btn btn-secondary"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={startPlaying}
+            >
+              重新测评
+            </motion.button>
+          )}
+          
+          <Link to="/levels">
+            <motion.button
+              className="btn btn-primary"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {passed ? '返回关卡选择' : '返回关卡选择'}
+            </motion.button>
+          </Link>
+        </div>
       </motion.div>
     </div>
   );
 };
 
-export default HiddenObjectGame;
+export default AssessmentGame;
