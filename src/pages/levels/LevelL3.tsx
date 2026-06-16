@@ -118,11 +118,11 @@ const LevelL3 = () => {
     
     setPassageGroups(formattedGroups);
 
-    // 随机选择5道语法/时态题
+    // 随机选择5道语法/时态题 - 按顺序取前5道，不打乱顺序
     const allGrammar = GRAMMAR_QUESTIONS.filter(q => q.difficulty! <= 3);
-    const randomGrammar = allGrammar.slice(0, 5).sort(() => Math.random() - 0.5);
+    const selectedGrammar = allGrammar.slice(0, 5); // 按顺序取前5道，不打乱
     
-    setGrammarQuestions(randomGrammar.map(q => ({
+    setGrammarQuestions(selectedGrammar.map(q => ({
       id: q.id,
       type: q.type,
       stem: q.stem.includes('___') ? q.stem : `请选择正确的时态形式：\n${q.stem}`,
