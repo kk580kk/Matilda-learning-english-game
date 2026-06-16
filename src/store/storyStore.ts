@@ -25,23 +25,23 @@ const initialDailyTasks: DailyTask[] = [
     type: 'reading',
     title: '每日阅读',
     description: '完成1个关卡的阅读环节',
-    reward: { trustValue: 2, score: 10 },
+    reward: { trustValue: 20, score: 10 },  // v3.1: 20-35 好感度
     completed: false
   },
   {
     id: 'daily-vocab',
     type: 'vocabulary',
     title: '词汇挑战',
-    description: '拼写5个单词',
-    reward: { trustValue: 3, score: 0 },
+    description: '完成3道阅读理解题',
+    reward: { trustValue: 15, score: 0 },  // v3.1: +15 好感度
     completed: false
   },
   {
     id: 'daily-login',
     type: 'login',
-    title: '连续登录',
-    description: '第N天登录奖励',
-    reward: { trustValue: 1, score: 0 },
+    title: '每日登录',
+    description: '登录游戏即可获得奖励',
+    reward: { trustValue: 10, score: 0 },  // v3.1: +10 好感度
     completed: false
   }
 ];
