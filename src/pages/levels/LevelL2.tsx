@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLevelStore, useAchievementStore, useGameStore } from '../../store';
+import { useLevelStore, useAchievementStore, useGameStore, useStoryStore } from '../../store';
 import { getLevelConfig, LEVEL_CONFIGS } from '../../data/levels/config';
 import { LearningPhase, ExamType } from '../../types';
 import { 
   GRAMMAR_QUESTIONS, 
   getQuestionsByChapter
 } from '../../data/questions';
+import { trustCalculator, MISS_HONEY_FEEDBACK } from '../../data/trustConfig';
 
 // Get L2 config - fallback to second level if not found
 const LEVEL_CONFIG = getLevelConfig('L2') || LEVEL_CONFIGS[1];
@@ -58,6 +59,21 @@ const AssessmentGame = () => {
   const { completeLevel } = useLevelStore();
   const { unlockAchievement } = useAchievementStore();
   const { startGame, endGame } = useGameStore();
+  const { 
+    trustValue, 
+    trustLevel, 
+    getTrustLevelName, 
+    getLevelReplayStats,
+    updateTrustValue
+  } = useStoryStore();
+
+  // 蜜糖老师反馈状态
+  const [trustResult, setTrustResult] = useState<{
+    change: number;
+    feedback: any;
+    newValue: number;
+    isLevelUp: boolean;
+  } | null>(null);
 
   const [gameState, setGameState] = useState<'intro' | 'reading' | 'grammar' | 'results'>('intro');
   const [readingQuestions, setReadingQuestions] = useState<QuizQuestion[]>([]);
@@ -226,6 +242,7 @@ const AssessmentGame = () => {
     const totalQuestions = readingQuestions.length + grammarQuestions.length;
     const correctCount = readingScore + grammarScore;
     const finalScore = Math.round((correctCount / totalQuestions) * 100);
+    const accuracy = correctCount / totalQuestions;
     
     completeLevel('L2', finalScore);
     
@@ -236,6 +253,39 @@ const AssessmentGame = () => {
     if (finalScore >= 70) {
       unlockAchievement('assessment_pass');
     }
+
+    // =====================
+    // 计算好感度变化（匹配天才人设）
+    // =====================
+    const replayStats = getLevelReplayStats('L2');
+    const playCount = replayStats?.playCount || 0;
+    
+    const trustCalcResult = trustCalculator.calculateLevelTrust(
+      'L2',
+      accuracy,
+      playCount === 0,
+      playCount + 1
+    );
+
+    // 更新好感度
+    const oldLevel = trustLevel;
+    trustCalcResult.sources.forEach(source => {
+      if (source.amount !== 0) {
+        updateTrustValue(source.amount, source);
+      }
+    });
+
+    // 设置反馈显示
+    const feedback = trustCalcResult.feedback || MISS_HONEY_FEEDBACK.poor;
+    const newValue = Math.max(0, Math.min(100, trustValue + trustCalcResult.totalTrust));
+    const newTrustLevel = useStoryStore.getState().trustLevel;
+    
+    setTrustResult({
+      change: trustCalcResult.totalTrust,
+      feedback,
+      newValue,
+      isLevelUp: newTrustLevel !== oldLevel
+    });
   };
 
   // 格式化时间
@@ -666,6 +716,84 @@ const AssessmentGame = () => {
             <p style={{ marginTop: '16px', color: '#e76f51' }}>
               需要 70 分才能通过，再试一次吧！
             </p>
+          )}
+
+          {/* 蜜糖老师好感度反馈 */}
+          {trustResult && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              style={{
+                marginTop: '24px',
+                padding: '20px',
+                background: `linear-gradient(135deg, ${trustResult.feedback.color}20 0%, ${trustResult.feedback.color}10 100%)`,
+                borderRadius: '12px',
+                border: `2px solid ${trustResult.feedback.color}`,
+                textAlign: 'left'
+              }}
+            >
+              {/* 蜜糖老师反馈 */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <span style={{ fontSize: '2.5rem' }}>{trustResult.feedback.emoji}</span>
+                <div>
+                  <p style={{ fontSize: '0.9rem', color: '#666', margin: 0 }}>👩‍🏫 蜜糖老师说</p>
+                  <p style={{ fontSize: '1.1rem', color: trustResult.feedback.color, fontWeight: 'bold', margin: '4px 0 0' }}>
+                    {trustResult.feedback.message}
+                  </p>
+                </div>
+              </div>
+
+              {/* 好感度变化 */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '12px 16px',
+                background: 'rgba(255,255,255,0.5)',
+                borderRadius: '8px'
+              }}>
+                <div>
+                  <span style={{ color: '#666', fontSize: '0.9rem' }}>💝 蜜糖老师好感度</span>
+                  <div style={{ marginTop: '4px' }}>
+                    <span style={{ 
+                      fontSize: '1.3rem', 
+                      fontWeight: 'bold',
+                      color: trustResult.change >= 0 ? '#4CAF50' : '#F44336'
+                    }}>
+                      {trustResult.change >= 0 ? '+' : ''}{trustResult.change}
+                    </span>
+                    <span style={{ color: '#888', marginLeft: '8px' }}>
+                      ({trustValue} → {trustResult.newValue})
+                    </span>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ color: '#666', fontSize: '0.85rem' }}>当前等级</span>
+                  <p style={{ margin: '4px 0 0', fontWeight: 'bold', color: trustResult.feedback.color }}>
+                    {getTrustLevelName()}
+                  </p>
+                </div>
+              </div>
+
+              {/* 升级提示 */}
+              {trustResult.isLevelUp && (
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  style={{
+                    marginTop: '12px',
+                    padding: '12px',
+                    background: '#9C27B0',
+                    borderRadius: '8px',
+                    textAlign: 'center',
+                    color: '#fff'
+                  }}
+                >
+                  🎉 恭喜升级！和蜜糖老师的关系更近一步！
+                </motion.div>
+              )}
+            </motion.div>
           )}
         </div>
 

@@ -8,9 +8,7 @@ import {
   MoralChoice,
   ChoiceOption,
   LevelReplayStats,
-  DailyTrustStats,
-  LevelRecord,
-  TrustSourceRecord
+  DailyTrustStats
 } from '../types/story';
 import { calculateTrustLevel, getTrustLevelName } from '../data/storyConfig';
 import { trustCalculator, TRUST_LEVEL_CONFIG, TrustCalculationResult, TrustSource } from '../data/trustConfig';
@@ -88,7 +86,7 @@ interface StoryStore extends StoryState {
   getLevelReplayStats: (levelId: string) => LevelReplayStats | undefined;
   getLevelRewardRange: (levelId: string) => { min: number; max: number };
   resetDailyTrustStats: () => void;
-  addTrustSource: (source: TrustSource) => void;
+  // addTrustSource: (source: TrustSource) => void;
   
   // 关卡进度
   initLevelProgress: (levelId: string) => void;
@@ -207,7 +205,7 @@ export const useStoryStore = create<StoryStore>()(
       },
       
       completeLevel: (levelId: string, accuracy: number) => {
-        const { levelReplayStats, addTrustSource } = get();
+        const { levelReplayStats } = get();
         const levelStats = levelReplayStats[levelId] || {
           levelId,
           playCount: 0,
@@ -257,7 +255,7 @@ export const useStoryStore = create<StoryStore>()(
       },
       
       resetDailyTrustStats: () => {
-        set((state) => ({
+        set(() => ({
           dailyTrustStats: {
             date: new Date().toISOString().split('T')[0],
             gained: 0,
@@ -266,9 +264,9 @@ export const useStoryStore = create<StoryStore>()(
         }));
       },
       
-      addTrustSource: (source: TrustSource) => {
-        get().updateTrustValue(source.amount, source);
-      },
+      // addTrustSource: (source: TrustSource) => {
+      //   get().updateTrustValue(source.amount, source);
+      // },
       
       // ========== 关卡进度 ==========
       initLevelProgress: (levelId: string) => {
