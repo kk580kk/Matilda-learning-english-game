@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useLevelStore } from '../store';
+import { useLevelStore, useStoryStore } from '../store';
 import { LEVEL_CONFIGS } from '../data/levels/config';
 import { LevelStatus } from '../types';
 
 const LevelSelect = () => {
   const { levelProgress, getLevelStatus } = useLevelStore();
+  const { getLevelRewardRange, getLevelReplayStats } = useStoryStore();
 
   const getStatusClass = (status: LevelStatus): string => {
     switch (status) {
@@ -56,6 +57,11 @@ const LevelSelect = () => {
           const isLocked = status === 'locked';
           const isPlayable = !isLocked;
 
+          // 获取好感度信息
+          const rewardRange = getLevelRewardRange(level.levelId);
+          const replayStats = getLevelReplayStats(level.levelId);
+          const playCount = replayStats?.playCount || 0;
+
           return (
             <motion.div
               key={level.levelId}
@@ -65,9 +71,28 @@ const LevelSelect = () => {
               className={`level-card ${getStatusClass(status)}`}
               style={{ 
                 cursor: isPlayable ? 'pointer' : 'not-allowed',
-                opacity: isLocked ? 0.5 : 1
+                opacity: isLocked ? 0.5 : 1,
+                position: 'relative'
               }}
             >
+              {/* 好感度提示徽章 */}
+              {isPlayable && (
+                <div style={{
+                  position: 'absolute',
+                  top: '8px',
+                  right: '8px',
+                  background: 'rgba(244, 67, 54, 0.9)',
+                  color: '#fff',
+                  padding: '2px 8px',
+                  borderRadius: '10px',
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold',
+                  zIndex: 1
+                }}>
+                  💝 +{rewardRange.min}-{rewardRange.max}
+                </div>
+              )}
+
               {isPlayable ? (
                 <Link 
                   to={`/level/${level.levelId}`} 
@@ -91,6 +116,17 @@ const LevelSelect = () => {
                   <div className="stars" style={{ fontSize: '0.9rem', marginBottom: '8px' }}>
                     {renderStars(level.difficulty)}
                   </div>
+                  
+                  {/* 刷题次数统计 */}
+                  {playCount > 0 && (
+                    <div style={{ 
+                      fontSize: '0.75rem', 
+                      color: '#9b7fc9',
+                      marginTop: '4px'
+                    }}>
+                      📚 已刷 {playCount} 次
+                    </div>
+                  )}
                   
                   {progress && progress.score > 0 && (
                     <div className="mt-2">
