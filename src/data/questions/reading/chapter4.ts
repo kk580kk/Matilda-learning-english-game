@@ -32,6 +32,53 @@ const PASSAGE_4_2 = "When Mr Wormwood arrived back from the garage that evening 
 const PASSAGE_4_3 = `"What's wrong with watching the telly, may I ask?" the father said. His voice had suddenly become soft and dangerous. Matilda didn't trust herself to answer him, so she kept quiet. She could feel the anger boiling up inside her. She knew it was wrong to hate her parents like this, but she was finding it very hard not to do so. All the reading she had done had given her a view of life that they had never seen. If only they would read a little Dickens or Kipling they would soon discover there was more to life than cheating people and watching television. Another thing. She resented being told constantly that she was ignorant and stupid when she knew she wasn't.`;
 
 // ============================================
+// 段落定义（用于关卡渲染）
+// ============================================
+export interface Passage {
+  id: string;
+  title: string;
+  titleZh: string;
+  text: string;
+  wordCount: number;
+  difficulty: number;
+  chapterNumber: number;
+  chapterTitle: string;
+}
+
+export const CHAPTER4_PASSAGES: Passage[] = [
+  {
+    id: 'c4-p1',
+    title: 'Calm After the Superglue Episode',
+    titleZh: '强力胶事件后的平静',
+    text: PASSAGE_4_1,
+    wordCount: 168,
+    difficulty: 2,
+    chapterNumber: 4,
+    chapterTitle: 'The Ghost'
+  },
+  {
+    id: 'c4-p2',
+    title: "Father's Reaction to Matilda's Reading",
+    titleZh: '爸爸对 Matilda 阅读的反应',
+    text: PASSAGE_4_2,
+    wordCount: 175,
+    difficulty: 3,
+    chapterNumber: 4,
+    chapterTitle: 'The Ghost'
+  },
+  {
+    id: 'c4-p3',
+    title: "Matilda's Anger and Decision",
+    titleZh: 'Matilda 的愤怒与决定',
+    text: PASSAGE_4_3,
+    wordCount: 182,
+    difficulty: 3,
+    chapterNumber: 4,
+    chapterTitle: 'The Ghost'
+  }
+];
+
+// ============================================
 // 阅读理解题数据
 // ============================================
 
@@ -235,6 +282,52 @@ export const getQuestionsByDifficulty = (minDifficulty: number, maxDifficulty: n
 export const getRandomQuestions = (count: number): Question[] => {
   const shuffled = [...CHAPTER4_QUESTIONS].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
+};
+
+/**
+ * 获取段落统计信息
+ */
+export const getPassageStats = () => {
+  return [
+    { id: 'c4-p1', title: '强力胶事件后的平静', wordCount: 168, difficulty: 'Level 2-3', questions: 3 },
+    { id: 'c4-p2', title: '爸爸对 Matilda 阅读的反应', wordCount: 175, difficulty: 'Level 3-4', questions: 3 },
+    { id: 'c4-p3', title: 'Matilda 的愤怒与决定', wordCount: 182, difficulty: 'Level 3-4', questions: 3 }
+  ];
+};
+
+/**
+ * 根据段落ID获取题目
+ * 用于关卡渲染：一段文章 + 多题绑定
+ */
+export const getQuestionsByPassageId = (passageId: string): Question[] => {
+  return CHAPTER4_QUESTIONS.filter(q => q.id.startsWith(passageId));
+};
+
+/**
+ * 获取段落和题目的绑定组
+ * 用于关卡渲染，返回 [{passage, questions}, ...]
+ */
+export interface PassageQuestionGroup {
+  passage: Passage;
+  questions: Question[];
+}
+
+export const getPassageQuestionGroups = (): PassageQuestionGroup[] => {
+  return CHAPTER4_PASSAGES.map(passage => ({
+    passage,
+    questions: getQuestionsByPassageId(passage.id)
+  }));
+};
+
+/**
+ * 获取指定难度范围的段落组（用于L1关卡）
+ * L1使用难度1-2的段落
+ */
+export const getPassageGroupsByDifficulty = (minDifficulty: number, maxDifficulty: number): PassageQuestionGroup[] => {
+  const groups = getPassageQuestionGroups();
+  return groups.filter(group => 
+    group.passage.difficulty >= minDifficulty && group.passage.difficulty <= maxDifficulty
+  );
 };
 
 export default CHAPTER4_QUESTIONS;

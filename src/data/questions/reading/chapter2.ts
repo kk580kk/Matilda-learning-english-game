@@ -8,6 +8,8 @@ import { Question, QuestionType, ExamType } from '../../../types';
  * - 所有阅读短文必须直接引用原著原文
  * - 禁止任何形式的改写或创作
  * - 必须标注来源章节和段落位置
+ * 
+ * PRD v1.0 / SRS v1.0 规范
  */
 
 // ============================================
@@ -15,14 +17,51 @@ import { Question, QuestionType, ExamType } from '../../../types';
 // 词数: 178 词
 // 难度: Level 2-3
 // ============================================
-const PASSAGE_2_1 = "Matilda's parents owned quite a nice house with three bedrooms upstairs, while on the ground floor there was a dining-room and a living-room and a kitchen. Her father was a dealer in second-hand cars and it seemed he did pretty well at it. \"Sawdust,\" he would say proudly, \"is one of the great secrets of my success. And it costs me nothing. I get it free from the sawmill.\" \"What do you use it for?\" Matilda asked him. \"Ha!\" the father said. \"Wouldn't you like to know.\" \"I don't see how sawdust can help you to sell second-hand cars, daddy.\" \"That's because you're an ignorant little twit,\" the father said.";
+export const PASSAGE_2_1 = "Matilda's parents owned quite a nice house with three bedrooms upstairs, while on the ground floor there was a dining-room and a living-room and a kitchen. Her father was a dealer in second-hand cars and it seemed he did pretty well at it. \"Sawdust,\" he would say proudly, \"is one of the great secrets of my success. And it costs me nothing. I get it free from the sawmill.\" \"What do you use it for?\" Matilda asked him. \"Ha!\" the father said. \"Wouldn't you like to know.\" \"I don't see how sawdust can help you to sell second-hand cars, daddy.\" \"That's because you're an ignorant little twit,\" the father said.";
 
 // ============================================
 // 段落 2: 锯末的秘密 (行 31)
 // 词数: 165 词
 // 难度: Level 3-4
 // ============================================
-const PASSAGE_2_2 = "\"I'm always glad to buy a car when some fool has been crashing the gears so badly they're all worn out and rattle like mad. I get it cheap. Then all I do is mix a lot of sawdust with the oil in the gear-box and it runs as sweet as a nut.\" \"How long will it run like that before it starts rattling again?\" Matilda asked him. \"Long enough for the buyer to get a good distance away,\" the father said, grinning. \"About a hundred miles.\" \"But that's dishonest, daddy,\" Matilda said. \"It's cheating.\" \"No one ever got rich being honest,\" the father said. \"Customers are there to be diddled.\"";
+export const PASSAGE_2_2 = "\"I'm always glad to buy a car when some fool has been crashing the gears so badly they're all worn out and rattle like mad. I get it cheap. Then all I do is mix a lot of sawdust with the oil in the gear-box and it runs as sweet as a nut.\" \"How long will it run like that before it starts rattling again?\" Matilda asked him. \"Long enough for the buyer to get a good distance away,\" the father said, grinning. \"About a hundred miles.\" \"But that's dishonest, daddy,\" Matilda said. \"It's cheating.\" \"No one ever got rich being honest,\" the father said. \"Customers are there to be diddled.\"";
+
+// ============================================
+// 段落定义（用于关卡渲染）
+// ============================================
+export interface Passage {
+  id: string;
+  title: string;
+  titleZh: string;
+  text: string;
+  wordCount: number;
+  difficulty: number;
+  chapterNumber: number;
+  chapterTitle: string;
+}
+
+export const CHAPTER2_PASSAGES: Passage[] = [
+  {
+    id: 'c2-p1',
+    title: "Mr Wormwood's Second-hand Car Business",
+    titleZh: '爸爸的二手车生意',
+    text: PASSAGE_2_1,
+    wordCount: 178,
+    difficulty: 2,
+    chapterNumber: 2,
+    chapterTitle: 'Mr Wormwood, the Great Car Dealer'
+  },
+  {
+    id: 'c2-p2',
+    title: 'The Secret of Sawdust',
+    titleZh: '锯末的秘密',
+    text: PASSAGE_2_2,
+    wordCount: 165,
+    difficulty: 3,
+    chapterNumber: 2,
+    chapterTitle: 'Mr Wormwood, the Great Car Dealer'
+  }
+];
 
 // ============================================
 // 阅读理解题数据
@@ -156,17 +195,71 @@ export const CHAPTER2_QUESTIONS: Question[] = [
 // 导出函数
 // ============================================
 
+/**
+ * 获取 Chapter 2 的所有题目
+ */
 export const getChapter2Questions = (): Question[] => {
   return CHAPTER2_QUESTIONS;
 };
 
+/**
+ * 根据难度获取题目
+ */
 export const getQuestionsByDifficulty = (minDifficulty: number, maxDifficulty: number): Question[] => {
   return CHAPTER2_QUESTIONS.filter(q => q.difficulty >= minDifficulty && q.difficulty <= maxDifficulty);
 };
 
+/**
+ * 获取指定数量的随机题目
+ */
 export const getRandomQuestions = (count: number): Question[] => {
   const shuffled = [...CHAPTER2_QUESTIONS].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
+};
+
+/**
+ * 获取段落统计信息
+ */
+export const getPassageStats = () => {
+  return [
+    { id: 'c2-p1', title: '爸爸的二手车生意', wordCount: 178, difficulty: 'Level 2-3', questions: 3 },
+    { id: 'c2-p2', title: '锯末的秘密', wordCount: 165, difficulty: 'Level 3-4', questions: 3 }
+  ];
+};
+
+/**
+ * 根据段落ID获取题目
+ * 用于关卡渲染：一段文章 + 多题绑定
+ */
+export const getQuestionsByPassageId = (passageId: string): Question[] => {
+  return CHAPTER2_QUESTIONS.filter(q => q.id.startsWith(passageId));
+};
+
+/**
+ * 获取段落和题目的绑定组
+ * 用于关卡渲染，返回 [{passage, questions}, ...]
+ */
+export interface PassageQuestionGroup {
+  passage: Passage;
+  questions: Question[];
+}
+
+export const getPassageQuestionGroups = (): PassageQuestionGroup[] => {
+  return CHAPTER2_PASSAGES.map(passage => ({
+    passage,
+    questions: getQuestionsByPassageId(passage.id)
+  }));
+};
+
+/**
+ * 获取指定难度范围的段落组（用于L1关卡）
+ * L1使用难度1-2的段落
+ */
+export const getPassageGroupsByDifficulty = (minDifficulty: number, maxDifficulty: number): PassageQuestionGroup[] => {
+  const groups = getPassageQuestionGroups();
+  return groups.filter(group => 
+    group.passage.difficulty >= minDifficulty && group.passage.difficulty <= maxDifficulty
+  );
 };
 
 export default CHAPTER2_QUESTIONS;

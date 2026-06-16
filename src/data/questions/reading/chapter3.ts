@@ -15,14 +15,51 @@ import { Question, QuestionType, ExamType } from '../../../types';
 // 词数: 168 词
 // 难度: Level 3-4
 // ============================================
-const PASSAGE_3_1 = 'The following morning, just before the father left for his beastly second-hand car garage, Matilda slipped into the cloakroom and got hold of the hat he wore each day to work. She had to stand on her toes and reach up as high as she could with a walking-stick in order to hook the hat off the peg, and even then she only just made it. The hat itself was one of those flat-topped pork-pie jobs with a jay\'s feather stuck in the hat-band and Mr Wormwood was very proud of it.';
+export const PASSAGE_3_1 = 'The following morning, just before the father left for his beastly second-hand car garage, Matilda slipped into the cloakroom and got hold of the hat he wore each day to work. She had to stand on her toes and reach up as high as she could with a walking-stick in order to hook the hat off the peg, and even then she only just made it. The hat itself was one of those flat-topped pork-pie jobs with a jay\'s feather stuck in the hat-band and Mr Wormwood was very proud of it.';
 
 // ============================================
 // 段落 2: 胶水粘帽子 (行 37-39)
 // 词数: 145 词
 // 难度: Level 3-4
 // ============================================
-const PASSAGE_3_2 = "Matilda, holding the hat in one hand and a thin tube of Superglue in the other, proceeded to squeeze a line of glue very neatly all round the inside rim of the hat. Then she carefully hooked the hat back on to the peg with the walking-stick. She timed this operation very carefully, applying the glue just as her father was getting up from the breakfast table. Mr Wormwood didn't notice anything when he put the hat on, but when he arrived at the garage he couldn't get it off.";
+export const PASSAGE_3_2 = "Matilda, holding the hat in one hand and a thin tube of Superglue in the other, proceeded to squeeze a line of glue very neatly all round the inside rim of the hat. Then she carefully hooked the hat back on to the peg with the walking-stick. She timed this operation very carefully, applying the glue just as her father was getting up from the breakfast table. Mr Wormwood didn't notice anything when he put the hat on, but when he arrived at the garage he couldn't get it off.";
+
+// ============================================
+// 段落定义（用于关卡渲染）
+// ============================================
+export interface Passage {
+  id: string;
+  title: string;
+  titleZh: string;
+  text: string;
+  wordCount: number;
+  difficulty: number;
+  chapterNumber: number;
+  chapterTitle: string;
+}
+
+export const CHAPTER3_PASSAGES: Passage[] = [
+  {
+    id: 'c3-p1',
+    title: 'The Superglue Prank',
+    titleZh: 'Superglue 恶作剧',
+    text: PASSAGE_3_1,
+    wordCount: 168,
+    difficulty: 3,
+    chapterNumber: 3,
+    chapterTitle: 'The Hat and the Superglue'
+  },
+  {
+    id: 'c3-p2',
+    title: 'Gluing the Hat',
+    titleZh: '胶水粘帽子',
+    text: PASSAGE_3_2,
+    wordCount: 145,
+    difficulty: 3,
+    chapterNumber: 3,
+    chapterTitle: 'The Hat and the Superglue'
+  }
+];
 
 // ============================================
 // 阅读理解题数据
@@ -167,6 +204,51 @@ export const getQuestionsByDifficulty = (minDifficulty: number, maxDifficulty: n
 export const getRandomQuestions = (count: number): Question[] => {
   const shuffled = [...CHAPTER3_QUESTIONS].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
+};
+
+/**
+ * 获取段落统计信息
+ */
+export const getPassageStats = () => {
+  return [
+    { id: 'c3-p1', title: 'Superglue 恶作剧', wordCount: 168, difficulty: 'Level 3-4', questions: 3 },
+    { id: 'c3-p2', title: '胶水粘帽子', wordCount: 145, difficulty: 'Level 3-4', questions: 3 }
+  ];
+};
+
+/**
+ * 根据段落ID获取题目
+ * 用于关卡渲染：一段文章 + 多题绑定
+ */
+export const getQuestionsByPassageId = (passageId: string): Question[] => {
+  return CHAPTER3_QUESTIONS.filter(q => q.id.startsWith(passageId));
+};
+
+/**
+ * 获取段落和题目的绑定组
+ * 用于关卡渲染，返回 [{passage, questions}, ...]
+ */
+export interface PassageQuestionGroup {
+  passage: Passage;
+  questions: Question[];
+}
+
+export const getPassageQuestionGroups = (): PassageQuestionGroup[] => {
+  return CHAPTER3_PASSAGES.map(passage => ({
+    passage,
+    questions: getQuestionsByPassageId(passage.id)
+  }));
+};
+
+/**
+ * 获取指定难度范围的段落组（用于L1关卡）
+ * L1使用难度1-2的段落
+ */
+export const getPassageGroupsByDifficulty = (minDifficulty: number, maxDifficulty: number): PassageQuestionGroup[] => {
+  const groups = getPassageQuestionGroups();
+  return groups.filter(group => 
+    group.passage.difficulty >= minDifficulty && group.passage.difficulty <= maxDifficulty
+  );
 };
 
 export default CHAPTER3_QUESTIONS;

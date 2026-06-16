@@ -8,6 +8,8 @@ import { Question, QuestionType, ExamType } from '../../../types';
  * - 所有阅读短文必须直接引用原著原文
  * - 禁止任何形式的改写或创作
  * - 必须标注来源章节和段落位置
+ * 
+ * PRD v1.0 / SRS v1.0 规范
  */
 
 // ============================================
@@ -15,21 +17,68 @@ import { Question, QuestionType, ExamType } from '../../../types';
 // 词数: 186 词
 // 难度: Level 2-3
 // ============================================
-const PASSAGE_5_1 = "Matilda longed for her parents to be good and loving and understanding and honourable and intelligent. The fact that they were none of these things was something she had to put up with. It was not easy to do so. But the new game she had invented of punishing one or both of them each time they were beastly to her made her life more or less bearable. Being very small and very young, the only power Matilda had over anyone in her family was brainpower. For sheer cleverness she could run rings around them all.";
+export const PASSAGE_5_1 = "Matilda longed for her parents to be good and loving and understanding and honourable and intelligent. The fact that they were none of these things was something she had to put up with. It was not easy to do so. But the new game she had invented of punishing one or both of them each time they were beastly to her made her life more or less bearable. Being very small and very young, the only power Matilda had over anyone in her family was brainpower. For sheer cleverness she could run rings around them all.";
 
 // ============================================
 // 段落 2: Matilda 的安全阀 (行 53)
 // 词数: 178 词
 // 难度: Level 3-4
 // ============================================
-const PASSAGE_5_2 = "Thus she was always forced to eat her evening meals out of TV-dinner-trays in front of the dreaded box. She always had to stay alone on weekday afternoons, and whenever she was told to shut up, she had to shut up. Her safety-valve, the thing that prevented her from going round the bend, was the fun of devising and dishing out these splendid punishments, and the lovely thing was that they seemed to work, at any rate for short periods. The father in particular became less cocky and unbearable for several days after receiving a dose of Matilda's magic medicine.";
+export const PASSAGE_5_2 = "Thus she was always forced to eat her evening meals out of TV-dinner-trays in front of the dreaded box. She always had to stay alone on weekday afternoons, and whenever she was told to shut up, she had to shut up. Her safety-valve, the thing that prevented her from going round the bend, was the fun of devising and dishing out these splendid punishments, and the lovely thing was that they seemed to work, at any rate for short periods. The father in particular became less cocky and unbearable for several days after receiving a dose of Matilda's magic medicine.";
 
 // ============================================
 // 段落 3: 爸爸的炫耀 (行 53-54)
 // 词数: 172 词
 // 难度: Level 3-4
 // ============================================
-const PASSAGE_5_3 = "The next flare-up came one evening in the sitting-room. Mr Wormwood had just returned from work. Matilda and her brother were sitting quietly on the sofa waiting for their mother to bring in the TV dinners on a tray. The television had not yet been switched on. In came Mr Wormwood in a loud check suit and a yellow tie. The appalling broad orange-and-green check of the jacket and trousers almost blinded the onlooker. He looked like a low-grade bookmaker dressed up for his daughter's wedding, and he was clearly very pleased with himself this evening.";
+export const PASSAGE_5_3 = "The next flare-up came one evening in the sitting-room. Mr Wormwood had just returned from work. Matilda and her brother were sitting quietly on the sofa waiting for their mother to bring in the TV dinners on a tray. The television had not yet been switched on. In came Mr Wormwood in a loud check suit and a yellow tie. The appalling broad orange-and-green check of the jacket and trousers almost blinded the onlooker. He looked like a low-grade bookmaker dressed up for his daughter's wedding, and he was clearly very pleased with himself this evening.";
+
+// ============================================
+// 段落定义（用于关卡渲染）
+// ============================================
+export interface Passage {
+  id: string;
+  title: string;
+  titleZh: string;
+  text: string;
+  wordCount: number;
+  difficulty: number;
+  chapterNumber: number;
+  chapterTitle: string;
+}
+
+export const CHAPTER5_PASSAGES: Passage[] = [
+  {
+    id: 'c5-p1',
+    title: 'Matilda\'s Punishment Game',
+    titleZh: 'Matilda 的惩罚游戏',
+    text: PASSAGE_5_1,
+    wordCount: 186,
+    difficulty: 2,
+    chapterNumber: 5,
+    chapterTitle: 'Arithmetic'
+  },
+  {
+    id: 'c5-p2',
+    title: 'Matilda\'s Safety-Valve',
+    titleZh: 'Matilda 的安全阀',
+    text: PASSAGE_5_2,
+    wordCount: 178,
+    difficulty: 3,
+    chapterNumber: 5,
+    chapterTitle: 'Arithmetic'
+  },
+  {
+    id: 'c5-p3',
+    title: 'Father\'s Showing Off',
+    titleZh: '爸爸的炫耀',
+    text: PASSAGE_5_3,
+    wordCount: 172,
+    difficulty: 3,
+    chapterNumber: 5,
+    chapterTitle: 'Arithmetic'
+  }
+];
 
 // ============================================
 // 阅读理解题数据
@@ -224,17 +273,72 @@ export const CHAPTER5_QUESTIONS: Question[] = [
 // 导出函数
 // ============================================
 
+/**
+ * 获取 Chapter 5 的所有题目
+ */
 export const getChapter5Questions = (): Question[] => {
   return CHAPTER5_QUESTIONS;
 };
 
+/**
+ * 根据难度获取题目
+ */
 export const getQuestionsByDifficulty = (minDifficulty: number, maxDifficulty: number): Question[] => {
   return CHAPTER5_QUESTIONS.filter(q => q.difficulty >= minDifficulty && q.difficulty <= maxDifficulty);
 };
 
+/**
+ * 获取指定数量的随机题目
+ */
 export const getRandomQuestions = (count: number): Question[] => {
   const shuffled = [...CHAPTER5_QUESTIONS].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
+};
+
+/**
+ * 获取段落统计信息
+ */
+export const getPassageStats = () => {
+  return [
+    { id: 'c5-p1', title: 'Matilda 的惩罚游戏', wordCount: 186, difficulty: 'Level 2-3', questions: 3 },
+    { id: 'c5-p2', title: 'Matilda 的安全阀', wordCount: 178, difficulty: 'Level 3-4', questions: 3 },
+    { id: 'c5-p3', title: '爸爸的炫耀', wordCount: 172, difficulty: 'Level 3-4', questions: 3 }
+  ];
+};
+
+/**
+ * 根据段落ID获取题目
+ * 用于关卡渲染：一段文章 + 多题绑定
+ */
+export const getQuestionsByPassageId = (passageId: string): Question[] => {
+  return CHAPTER5_QUESTIONS.filter(q => q.id.startsWith(passageId));
+};
+
+/**
+ * 获取段落和题目的绑定组
+ * 用于关卡渲染，返回 [{passage, questions}, ...]
+ */
+export interface PassageQuestionGroup {
+  passage: Passage;
+  questions: Question[];
+}
+
+export const getPassageQuestionGroups = (): PassageQuestionGroup[] => {
+  return CHAPTER5_PASSAGES.map(passage => ({
+    passage,
+    questions: getQuestionsByPassageId(passage.id)
+  }));
+};
+
+/**
+ * 获取指定难度范围的段落组（用于L1关卡）
+ * L1使用难度1-2的段落
+ */
+export const getPassageGroupsByDifficulty = (minDifficulty: number, maxDifficulty: number): PassageQuestionGroup[] => {
+  const groups = getPassageQuestionGroups();
+  return groups.filter(group => 
+    group.passage.difficulty >= minDifficulty && group.passage.difficulty <= maxDifficulty
+  );
 };
 
 export default CHAPTER5_QUESTIONS;

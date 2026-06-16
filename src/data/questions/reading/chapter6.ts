@@ -232,29 +232,81 @@ export const CHAPTER6_QUESTIONS: Question[] = [
 ];
 
 // ============================================
-// 工具函数
+// 导出函数
 // ============================================
 
 /**
- * 根据段落ID获取对应的题目
+ * 获取 Chapter 6 的所有题目
  */
-export function getQuestionsByPassageId(passageId: string): Question[] {
-  const passage = CHAPTER6_PASSAGES.find(p => p.id === passageId);
-  if (!passage) return [];
-  
-  return CHAPTER6_QUESTIONS.filter(q => q.id.startsWith(passageId));
-}
+export const getChapter6Questions = (): Question[] => {
+  return CHAPTER6_QUESTIONS;
+};
 
 /**
- * 获取指定难度的题目
+ * 根据难度获取题目
  */
-export function getQuestionsByDifficulty(difficulty: number): Question[] {
-  return CHAPTER6_QUESTIONS.filter(q => q.difficulty === difficulty);
+export const getQuestionsByDifficulty = (minDifficulty: number, maxDifficulty: number): Question[] => {
+  return CHAPTER6_QUESTIONS.filter(q => q.difficulty >= minDifficulty && q.difficulty <= maxDifficulty);
+};
+
+/**
+ * 获取指定数量的随机题目
+ */
+export const getRandomQuestions = (count: number): Question[] => {
+  const shuffled = [...CHAPTER6_QUESTIONS].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+};
+
+/**
+ * 获取段落统计信息
+ */
+export const getPassageStats = () => {
+  return [
+    { id: 'c6-p1', title: 'Matilda的报复计划', wordCount: 218, difficulty: 'Level 2', questions: 3 },
+    { id: 'c6-p2', title: '染发后果', wordCount: 200, difficulty: 'Level 2', questions: 4 }
+  ];
+};
+
+/**
+ * 根据段落ID获取题目
+ * 用于关卡渲染：一段文章 + 多题绑定
+ */
+export const getQuestionsByPassageId = (passageId: string): Question[] => {
+  return CHAPTER6_QUESTIONS.filter(q => q.id.startsWith(passageId));
+};
+
+/**
+ * 获取段落和题目的绑定组
+ * 用于关卡渲染，返回 [{passage, questions}, ...]
+ */
+export interface PassageQuestionGroup {
+  passage: Passage;
+  questions: Question[];
 }
+
+export const getPassageQuestionGroups = (): PassageQuestionGroup[] => {
+  return CHAPTER6_PASSAGES.map(passage => ({
+    passage,
+    questions: getQuestionsByPassageId(passage.id)
+  }));
+};
+
+/**
+ * 获取指定难度范围的段落组（用于L1关卡）
+ * L1使用难度1-2的段落
+ */
+export const getPassageGroupsByDifficulty = (minDifficulty: number, maxDifficulty: number): PassageQuestionGroup[] => {
+  const groups = getPassageQuestionGroups();
+  return groups.filter(group => 
+    group.passage.difficulty >= minDifficulty && group.passage.difficulty <= maxDifficulty
+  );
+};
 
 /**
  * 获取所有段落
  */
-export function getAllPassages(): Passage[] {
+export const getAllPassages = (): Passage[] => {
   return CHAPTER6_PASSAGES;
-}
+};
+
+export default CHAPTER6_QUESTIONS;
