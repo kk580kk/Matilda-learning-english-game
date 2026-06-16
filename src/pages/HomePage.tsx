@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useGameStore } from '../store';
+import { useGameStore, useStoryStore } from '../store';
 
 const HomePage = () => {
   const { totalPlayTime } = useGameStore();
+  const { trustValue, getTrustLevelName } = useStoryStore();
 
   const formatTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
@@ -102,8 +103,33 @@ const HomePage = () => {
           </Link>
         </div>
 
+        {/* 蜜糖老师好感度 */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5 }}
+          style={{ 
+            marginTop: '32px', 
+            padding: '16px 24px',
+            background: 'rgba(155, 127, 201, 0.15)',
+            borderRadius: '12px',
+            border: '1px solid rgba(155, 127, 201, 0.3)',
+            display: 'inline-block'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '2rem' }}>👩‍🏫</span>
+            <div style={{ textAlign: 'left' }}>
+              <p style={{ color: '#9b7fc9', fontSize: '0.9rem', margin: 0 }}>蜜糖老师好感度</p>
+              <p style={{ color: '#fff', fontSize: '1.2rem', margin: '4px 0 0', fontWeight: 'bold' }}>
+                💝 {trustValue} · {getTrustLevelName()}
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Stats */}
-        <div style={{ marginTop: '48px', color: '#888' }}>
+        <div style={{ marginTop: '32px', color: '#888' }}>
           <p>游戏时长: {formatTime(totalPlayTime)}</p>
         </div>
 
