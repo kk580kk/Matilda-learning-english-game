@@ -67,10 +67,11 @@ export const LevelCompleteScreen = ({
               justifyContent: 'space-between',
               padding: '12px 16px',
               background: '#f8f9fa',
-              borderRadius: '8px'
+              borderRadius: '8px',
+              color: '#333'
             }}>
               <span>正确率</span>
-              <span style={{ color: accuracy >= 70 ? '#2a9d8f' : '#e76f51' }}>
+              <span style={{ color: accuracy >= 70 ? '#2a9d8f' : '#e76f51', fontWeight: 'bold' }}>
                 {accuracy}%
               </span>
             </div>
@@ -80,10 +81,11 @@ export const LevelCompleteScreen = ({
               justifyContent: 'space-between',
               padding: '12px 16px',
               background: '#f8f9fa',
-              borderRadius: '8px'
+              borderRadius: '8px',
+              color: '#333'
             }}>
               <span>答对题数</span>
-              <span>{correctCount}/{totalQuestions}</span>
+              <span style={{ fontWeight: 'bold' }}>{correctCount}/{totalQuestions}</span>
             </div>
 
             <div style={{
@@ -91,10 +93,11 @@ export const LevelCompleteScreen = ({
               justifyContent: 'space-between',
               padding: '12px 16px',
               background: '#f8f9fa',
-              borderRadius: '8px'
+              borderRadius: '8px',
+              color: '#333'
             }}>
               <span>总得分</span>
-              <span>{totalScore}</span>
+              <span style={{ fontWeight: 'bold' }}>{totalScore}</span>
             </div>
 
             <div style={{

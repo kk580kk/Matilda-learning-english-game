@@ -530,29 +530,70 @@ export interface UserProfile {
 }
 
 // ============================================================
-// 成就系统
+// 成就系统 (v3.1 扩展)
 // ============================================================
 
+/** 成就分类 */
+export type AchievementCategory = 'learning' | 'story' | 'social' | 'special';
+
+/** 条件类型 (SRS v3.1) */
+export type ConditionType = 'count' | 'streak' | 'threshold' | 'time_range' | 'composite' | 'level_complete' | 'score_reach' | 'combo_reach';
+
+/** 条件配置 */
+export interface AchievementCondition {
+  type: ConditionType;
+  target: number | string | Record<string, any>;
+  /** 复合条件子项 */
+  conditions?: AchievementCondition[];
+  /** 逻辑运算符 (composite 类型用) */
+  operator?: 'and' | 'or';
+}
+
+/** 奖励类型 */
+export type RewardType = 'trust' | 'badge' | 'vocab' | 'ability';
+
+/** 奖励配置 */
+export interface AchievementReward {
+  type: RewardType;
+  value: number | string;
+}
+
+/** 成就定义 */
 export interface Achievement {
   id: string;
-  category: 'level' | 'ability' | 'vocab' | 'streak' | 'review' | 'special';
+  category: AchievementCategory;
   name: string;
   description: string;
   icon: string;
   
   // 条件
-  condition: {
-    type: string;
-    target: number | string | Record<string, any>;
-  };
+  condition: AchievementCondition;
   
   // 奖励
-  reward?: {
-    type: 'vocab' | 'ability' | 'badge';
-    value: any;
-  };
+  reward?: AchievementReward;
   
+  // 解锁时间
   unlockedAt?: string;
+  
+  // 是否隐藏 (隐藏成就)
+  hidden?: boolean;
+}
+
+/** 成就解锁事件 (数据埋点) */
+export interface AchievementUnlockEvent {
+  achievementId: string;
+  achievementName: string;
+  category: AchievementCategory;
+  timestamp: number;
+  trustGained?: number;
+}
+
+/** 成就统计 */
+export interface AchievementStats {
+  totalUnlocked: number;
+  totalCount: number;
+  categoryStats: Record<AchievementCategory, { unlocked: number; total: number }>;
+  lastUnlockTime?: number;
 }
 
 // ============================================================

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LevelSelect from './pages/LevelSelect';
@@ -9,11 +10,22 @@ import LevelL5 from './pages/levels/LevelL5';
 import LevelL6 from './pages/levels/LevelL6';
 import LevelL10 from './pages/levels/LevelL10';
 import AchievementsPage from './pages/AchievementsPage';
+import AchievementUnlockModal from './components/AchievementUnlockModal';
+import { useAchievementStore } from './store';
 
 function App() {
+  const { checkLoginStreak } = useAchievementStore();
+  
+  // 应用启动时检查登录连续
+  useEffect(() => {
+    checkLoginStreak();
+  }, []);
 
   return (
     <HashRouter>
+      {/* 成就解锁弹窗 - 全局显示 */}
+      <AchievementUnlockModal />
+      
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/levels" element={<LevelSelect />} />
