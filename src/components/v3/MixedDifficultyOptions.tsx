@@ -18,8 +18,8 @@ interface MixedDifficultyOptionsProps {
 }
 
 /**
- * 混合难度选项组件 v3.0
- * 展示带有难度标记的选项
+ * 选项组件 v3.0
+ * 展示选项和选择结果
  */
 export const MixedDifficultyOptions: React.FC<MixedDifficultyOptionsProps> = ({
   options,
@@ -28,38 +28,6 @@ export const MixedDifficultyOptions: React.FC<MixedDifficultyOptionsProps> = ({
   onSelect,
   disabled = false
 }) => {
-  const getDifficultyConfig = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy':
-        return {
-          label: '简单',
-          color: '#4caf50',
-          bgColor: '#e8f5e9',
-          borderColor: '#4caf50'
-        };
-      case 'medium':
-        return {
-          label: '中等',
-          color: '#ff9800',
-          bgColor: '#fff3e0',
-          borderColor: '#ff9800'
-        };
-      case 'hard':
-        return {
-          label: '困难',
-          color: '#f44336',
-          bgColor: '#ffebee',
-          borderColor: '#f44336'
-        };
-      default:
-        return {
-          label: '',
-          color: '#999',
-          bgColor: '#f5f5f5',
-          borderColor: '#ddd'
-        };
-    }
-  };
 
   const getOptionStyle = (option: OptionV3) => {
     const isSelected = selectedOption === option.id;
@@ -103,7 +71,6 @@ export const MixedDifficultyOptions: React.FC<MixedDifficultyOptionsProps> = ({
       gap: '12px'
     }}>
       {options.map((option, index) => {
-        const config = getDifficultyConfig(option.difficulty);
         const style = getOptionStyle(option);
         const isSelected = selectedOption === option.id;
 
@@ -157,20 +124,6 @@ export const MixedDifficultyOptions: React.FC<MixedDifficultyOptionsProps> = ({
               lineHeight: '1.5'
             }}>
               {option.text}
-            </span>
-
-            {/* 难度标记 */}
-            <span style={{
-              padding: '4px 10px',
-              borderRadius: '12px',
-              fontSize: '0.75rem',
-              fontWeight: 500,
-              background: config.bgColor,
-              color: config.color,
-              border: `1px solid ${config.borderColor}`,
-              flexShrink: 0
-            }}>
-              {config.label}
             </span>
 
             {/* 结果标记 */}
