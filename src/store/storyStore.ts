@@ -6,9 +6,14 @@ import {
   DailyTask,
   TrustLevel,
   MoralChoice,
-  ChoiceOption 
+  ChoiceOption,
+  LevelReplayStats,
+  DailyTrustStats,
+  LevelRecord,
+  TrustSourceRecord
 } from '../types/story';
 import { calculateTrustLevel, getTrustLevelName } from '../data/storyConfig';
+import { trustCalculator, TRUST_LEVEL_CONFIG, TrustCalculationResult, TrustSource } from '../data/trustConfig';
 
 // ============================================================
 // 初始状态
@@ -41,6 +46,12 @@ const initialDailyTasks: DailyTask[] = [
   }
 ];
 
+const initialDailyTrustStats: DailyTrustStats = {
+  date: new Date().toISOString().split('T')[0],
+  gained: 0,
+  sources: []
+};
+
 const initialState: StoryState = {
   moralValue: 0,
   trustValue: 0,
@@ -50,7 +61,11 @@ const initialState: StoryState = {
   lastTaskRefresh: new Date().toISOString(),
   unlockedScenes: [],
   unlockedBranches: [],
-  unlockedEndings: []
+  unlockedEndings: [],
+  // v3.1 扩展
+  levelReplayStats: {},
+  dailyTrustStats: initialDailyTrustStats,
+  levelHistory: []
 };
 
 // ============================================================
@@ -63,15 +78,22 @@ interface StoryStore extends StoryState {
   addMoralChoice: (choice: MoralChoice) => void;
   getMoralChoices: () => MoralChoice[];
   
-  // 信任系统
-  updateTrustValue: (delta: number) => void;
+  // 信任系统 (v3.1 扩展)
+  updateTrustValue: (delta: number, source?: TrustSource) => void;
   getTrustLevel: () => TrustLevel;
   getTrustLevelName: () => string;
+  getTrustToNextLevel: () => number;
+  getLevelProgress: () => number;
+  completeLevel: (levelId: string, accuracy: number) => TrustCalculationResult;
+  getLevelReplayStats: (levelId: string) => LevelReplayStats | undefined;
+  getLevelRewardRange: (levelId: string) => { min: number; max: number };
+  resetDailyTrustStats: () => void;
+  addTrustSource: (source: TrustSource) => void;
   
   // 关卡进度
   initLevelProgress: (levelId: string) => void;
   updateLevelProgress: (levelId: string, progress: Partial<StoryProgress>) => void;
-  getLevelProgress: (levelId: string) => StoryProgress | undefined;
+  getLevelProgressForLevel: (levelId: string) => StoryProgress | undefined;
   completeScene: (levelId: string, sceneId: string) => void;
   makeChoice: (levelId: string, sceneId: string, choice: ChoiceOption) => void;
   getCurrentScene: (levelId: string) => string | undefined;
@@ -120,13 +142,49 @@ export const useStoryStore = create<StoryStore>()(
         return JSON.parse(localStorage.getItem(key) || '[]');
       },
       
-      // ========== 信任系统 ==========
-      updateTrustValue: (delta: number) => {
+      // ========== 信任系统 (v3.1 扩展) ==========
+      updateTrustValue: (delta: number, source?: TrustSource) => {
         set((state) => {
           const newTrustValue = Math.max(0, Math.min(100, state.trustValue + delta));
+          const newLevel = calculateTrustLevel(newTrustValue);
+          const oldLevel = state.trustLevel;
+          const isLevelUp = newLevel !== oldLevel;
+          
+          // 记录等级提升
+          let newHistory = state.levelHistory;
+          if (isLevelUp) {
+            const lastRecord = state.levelHistory[state.levelHistory.length - 1];
+            newHistory = [...state.levelHistory, {
+              level: newLevel,
+              reachedAt: Date.now(),
+              trustValueAtLevel: newTrustValue,
+              durationFromLast: lastRecord 
+                ? Math.floor((Date.now() - lastRecord.reachedAt) / 1000) 
+                : 0
+            }];
+          }
+          
+          // 更新每日统计
+          const today = new Date().toISOString().split('T')[0];
+          let dailyStats = state.dailyTrustStats;
+          if (dailyStats.date !== today) {
+            dailyStats = { date: today, gained: 0, sources: [] };
+          }
+          if (source) {
+            dailyStats.gained += delta;
+            dailyStats.sources.push({
+              source: source.source as any,
+              amount: delta,
+              timestamp: Date.now(),
+              metadata: source.metadata
+            });
+          }
+          
           return {
             trustValue: newTrustValue,
-            trustLevel: calculateTrustLevel(newTrustValue)
+            trustLevel: newLevel,
+            levelHistory: newHistory,
+            dailyTrustStats: dailyStats
           };
         });
       },
@@ -136,7 +194,80 @@ export const useStoryStore = create<StoryStore>()(
       },
       
       getTrustLevelName: () => {
-        return getTrustLevelName(get().trustLevel);
+        const level = get().trustLevel;
+        return TRUST_LEVEL_CONFIG[level]?.name || getTrustLevelName(level);
+      },
+      
+      getTrustToNextLevel: () => {
+        return trustCalculator.calculateTrustToNextLevel(get().trustValue);
+      },
+      
+      getLevelProgress: () => {
+        return trustCalculator.calculateLevelProgress(get().trustValue);
+      },
+      
+      completeLevel: (levelId: string, accuracy: number) => {
+        const { levelReplayStats, addTrustSource } = get();
+        const levelStats = levelReplayStats[levelId] || {
+          levelId,
+          playCount: 0,
+          firstCompleteAt: 0,
+          lastPlayAt: 0,
+          totalTrustGained: 0
+        };
+        
+        const isFirstComplete = levelStats.playCount === 0;
+        const result = trustCalculator.calculateLevelTrust(
+          levelId,
+          accuracy,
+          isFirstComplete,
+          levelStats.playCount + 1
+        );
+        
+        // 添加好感度
+        result.sources.forEach(source => {
+          get().updateTrustValue(source.amount, source);
+        });
+        
+        // 更新关卡统计
+        set((state) => ({
+          levelReplayStats: {
+            ...state.levelReplayStats,
+            [levelId]: {
+              levelId,
+              playCount: levelStats.playCount + 1,
+              firstCompleteAt: isFirstComplete ? Date.now() : levelStats.firstCompleteAt,
+              lastPlayAt: Date.now(),
+              totalTrustGained: levelStats.totalTrustGained + result.totalTrust
+            }
+          }
+        }));
+        
+        return result;
+      },
+      
+      getLevelReplayStats: (levelId: string) => {
+        return get().levelReplayStats[levelId];
+      },
+      
+      getLevelRewardRange: (levelId: string) => {
+        const stats = get().levelReplayStats[levelId];
+        const playCount = stats?.playCount || 0;
+        return trustCalculator.getLevelRewardRange(playCount);
+      },
+      
+      resetDailyTrustStats: () => {
+        set((state) => ({
+          dailyTrustStats: {
+            date: new Date().toISOString().split('T')[0],
+            gained: 0,
+            sources: []
+          }
+        }));
+      },
+      
+      addTrustSource: (source: TrustSource) => {
+        get().updateTrustValue(source.amount, source);
       },
       
       // ========== 关卡进度 ==========
@@ -170,7 +301,7 @@ export const useStoryStore = create<StoryStore>()(
         }));
       },
       
-      getLevelProgress: (levelId: string) => {
+      getLevelProgressForLevel: (levelId: string) => {
         return get().levelProgress[levelId];
       },
       
@@ -395,7 +526,11 @@ export const useStoryStore = create<StoryStore>()(
         lastTaskRefresh: state.lastTaskRefresh,
         unlockedScenes: state.unlockedScenes,
         unlockedBranches: state.unlockedBranches,
-        unlockedEndings: state.unlockedEndings
+        unlockedEndings: state.unlockedEndings,
+        // v3.1 扩展持久化
+        levelReplayStats: state.levelReplayStats,
+        dailyTrustStats: state.dailyTrustStats,
+        levelHistory: state.levelHistory
       })
     }
   )

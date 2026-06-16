@@ -563,9 +563,10 @@ export const getNextScene = (levelId: string, currentSceneId: string, choiceId?:
 
 // 计算信任等级
 export const calculateTrustLevel = (trustValue: number): TrustLevel => {
-  if (trustValue >= 81) return TrustLevel.CONFIDANT;
-  if (trustValue >= 51) return TrustLevel.FRIEND;
-  if (trustValue >= 21) return TrustLevel.ACQUAINTANCE;
+  if (trustValue >= 100) return TrustLevel.BEST_FRIEND;
+  if (trustValue >= 75) return TrustLevel.CONFIDANT;
+  if (trustValue >= 50) return TrustLevel.FRIEND;
+  if (trustValue >= 25) return TrustLevel.ACQUAINTANCE;
   return TrustLevel.STRANGER;
 };
 
@@ -575,7 +576,8 @@ export const getTrustLevelName = (level: TrustLevel): string => {
     [TrustLevel.STRANGER]: '陌生人',
     [TrustLevel.ACQUAINTANCE]: '熟人',
     [TrustLevel.FRIEND]: '朋友',
-    [TrustLevel.CONFIDANT]: '密友'
+    [TrustLevel.CONFIDANT]: '密友',
+    [TrustLevel.BEST_FRIEND]: '挚友'
   };
   return names[level];
 };

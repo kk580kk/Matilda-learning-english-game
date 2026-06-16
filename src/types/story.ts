@@ -119,10 +119,11 @@ export interface TrustSystem {
 
 /** 信任等级 */
 export enum TrustLevel {
-  STRANGER = 'stranger',   // 0-20 陌生人
-  ACQUAINTANCE = 'acquaintance', // 21-50 熟人
-  FRIEND = 'friend',       // 51-80 朋友
-  CONFIDANT = 'confidant', // 81-100 密友
+  STRANGER = 'stranger',     // 0-24 陌生人
+  ACQUAINTANCE = 'acquaintance', // 25-49 熟人
+  FRIEND = 'friend',       // 50-74 朋友
+  CONFIDANT = 'confidant', // 75-99 密友
+  BEST_FRIEND = 'best_friend' // 100 挚友
 }
 
 /** 日常任务 */
@@ -191,4 +192,45 @@ export interface StoryState {
   unlockedScenes: string[];
   unlockedBranches: string[];
   unlockedEndings: string[];
+  
+  // v3.1 扩展：信任系统
+  levelReplayStats: Record<string, LevelReplayStats>;  // 关卡刷题统计
+  dailyTrustStats: DailyTrustStats;  // 每日好感度统计
+  levelHistory: LevelRecord[];  // 等级提升历史
+}
+
+/** 关卡重复刷题统计 (v3.1) */
+export interface LevelReplayStats {
+  levelId: string;
+  playCount: number;      // 总刷题次数
+  firstCompleteAt: number; // 首次通关时间
+  lastPlayAt: number;     // 上次刷题时间
+  totalTrustGained: number; // 该关卡累计获得好感度
+}
+
+/** 每日好感度统计 (v3.1) */
+export interface DailyTrustStats {
+  date: string;           // YYYY-MM-DD
+  gained: number;         // 今日获得
+  sources: TrustSourceRecord[]; // 来源明细
+}
+
+/** 信任来源记录 (v3.1) */
+export interface TrustSourceRecord {
+  source: 'level_complete' | 'daily_task' | 'story_choice' | 'daily_login';
+  amount: number;
+  timestamp: number;
+  metadata?: {
+    levelId?: string;
+    taskType?: string;
+    choiceId?: string;
+  };
+}
+
+/** 等级提升记录 (v3.1) */
+export interface LevelRecord {
+  level: TrustLevel;
+  reachedAt: number;      // 达到该等级的时间戳
+  trustValueAtLevel: number; // 达到时的好感度值
+  durationFromLast: number; // 距离上一等级的时长(秒)
 }

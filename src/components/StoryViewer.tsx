@@ -50,7 +50,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   
   const {
     initLevelProgress,
-    getLevelProgress,
+    getLevelProgressForLevel,
     setCurrentScene: setStoreScene,
     makeChoice,
     completeScene,
@@ -63,7 +63,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   useEffect(() => {
     if (storyConfig) {
       initLevelProgress(levelId);
-      const progress = getLevelProgress(levelId);
+      const progress = getLevelProgressForLevel(levelId);
       const scene = storyConfig.scenes.find(s => s.id === progress?.currentSceneId) 
         || storyConfig.scenes[0];
       setCurrentScene(scene);
