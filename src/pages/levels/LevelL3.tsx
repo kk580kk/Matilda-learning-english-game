@@ -603,17 +603,39 @@ const LevelL3 = () => {
               <div style={{ fontSize: '1.2rem', marginBottom: '16px', color: '#0369a1' }}>
                 ✅ 已完成本组所有题目！
               </div>
-              <motion.button
+              <button
                 className="btn btn-primary"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
                 onClick={handleNextQuestion}
-                style={{ fontSize: '1.1rem', padding: '16px 48px' }}
+                style={{ 
+                  fontSize: '1.1rem', 
+                  padding: '16px 48px',
+                  cursor: 'pointer',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: '#fff',
+                  fontWeight: 'bold',
+                  transition: 'transform 0.1s, box-shadow 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.transform = 'scale(0.95)';
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                }}
               >
                 {currentPassageIndex < passageGroups.length - 1 
                   ? '下一组文章 →' 
                   : '进入语法部分 →'}
-              </motion.button>
+              </button>
             </motion.div>
           )}
         </motion.div>
