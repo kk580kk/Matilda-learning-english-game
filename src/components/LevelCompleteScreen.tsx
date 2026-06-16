@@ -113,9 +113,9 @@ export const LevelCompleteScreen = ({
             </div>
           </div>
 
-          <div style={{ marginTop: '24px', padding: '16px', background: '#e7f5ff', borderRadius: '8px' }}>
-            <strong>💡 学习建议：</strong>
-            <ul style={{ marginTop: '8px', paddingLeft: '20px', lineHeight: '1.8', textAlign: 'left' }}>
+          <div style={{ marginTop: '24px', padding: '16px', background: '#e7f5ff', borderRadius: '8px', color: '#333' }}>
+            <strong style={{ color: '#0066cc' }}>💡 学习建议：</strong>
+            <ul style={{ marginTop: '8px', paddingLeft: '20px', lineHeight: '1.8', textAlign: 'left', color: '#444' }}>
               {!passed && (
                 <li>阅读理解需要加强，建议多读原著，注意细节</li>
               )}

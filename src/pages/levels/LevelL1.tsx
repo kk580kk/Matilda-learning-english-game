@@ -9,7 +9,7 @@ import {
   CHAPTER1_ARTICLE_V3, 
   CHAPTER1_QUESTIONS_V3 
 } from '../../data/questions/reading/chapter1-v3';
-import { trustCalculator, MISS_HONEY_FEEDBACK } from '../../data/trustConfig';
+import { MISS_HONEY_FEEDBACK } from '../../data/trustConfig';
 
 // Get L1 config
 const LEVEL_CONFIG = getLevelConfig('L1') || LEVEL_CONFIGS[0];
@@ -43,14 +43,14 @@ const getObjectives = () => {
 };
 
 const LevelL1 = () => {
-  const { completeLevel } = useLevelStore();
+  const { completeLevel: completeLevelStore } = useLevelStore();
   const { unlockAchievement } = useAchievementStore();
   const { startGame, endGame } = useGameStore();
   const { 
     trustValue, 
     trustLevel, 
     getTrustLevelName, 
-    getLevelReplayStats 
+    completeLevel: completeStoryLevel
   } = useStoryStore();
 
   // 蜜糖老师反馈状态
@@ -96,7 +96,11 @@ const LevelL1 = () => {
 
     // 计算最终分数
     const finalScore = result.accuracy;
-    completeLevel('L1', finalScore);
+    completeLevelStore('L1', finalScore);
+
+    // 使用 storyStore 的 completeLevel 来正确更新好感度和 replayStats
+    const accuracy = result.correctCount / result.totalQuestions;
+    const trustCalcResult = completeStoryLevel('L1', accuracy);
 
     // 解锁成就
     if (finalScore >= 90) {
@@ -106,29 +110,8 @@ const LevelL1 = () => {
       unlockAchievement('assessment_pass');
     }
 
-    // =====================
-    // 计算好感度变化（匹配天才人设）
-    // =====================
-    const accuracy = result.correctCount / result.totalQuestions;
-    const replayStats = getLevelReplayStats('L1');
-    const playCount = replayStats?.playCount || 0;
-    
-    const trustCalcResult = trustCalculator.calculateLevelTrust(
-      'L1',
-      accuracy,
-      playCount === 0,
-      playCount + 1
-    );
-
-    // 更新好感度
-    const oldLevel = trustLevel;
-    trustCalcResult.sources.forEach(source => {
-      if (source.amount !== 0) {
-        useStoryStore.getState().updateTrustValue(source.amount, source);
-      }
-    });
-
     // 设置反馈显示
+    const oldLevel = trustLevel;
     const feedback = trustCalcResult.feedback || MISS_HONEY_FEEDBACK.poor;
     const newValue = Math.max(0, Math.min(100, trustValue + trustCalcResult.totalTrust));
     const newTrustLevel = useStoryStore.getState().trustLevel;
@@ -139,7 +122,7 @@ const LevelL1 = () => {
       newValue,
       isLevelUp: newTrustLevel !== oldLevel
     });
-  }, [completeLevel, unlockAchievement, endGame, trustValue, trustLevel, getLevelReplayStats]);
+  }, [completeLevelStore, completeStoryLevel, unlockAchievement, endGame, trustValue, trustLevel]);
 
   // 退出游戏
   const handleExit = useCallback(() => {

@@ -8,7 +8,7 @@ import {
   GRAMMAR_QUESTIONS, 
   getQuestionsByChapter
 } from '../../data/questions';
-import { trustCalculator, MISS_HONEY_FEEDBACK } from '../../data/trustConfig';
+import { MISS_HONEY_FEEDBACK } from '../../data/trustConfig';
 
 // Get L2 config - fallback to second level if not found
 const LEVEL_CONFIG = getLevelConfig('L2') || LEVEL_CONFIGS[1];
@@ -56,15 +56,14 @@ interface QuizQuestion {
 }
 
 const AssessmentGame = () => {
-  const { completeLevel } = useLevelStore();
+  const { completeLevel: completeLevelStore } = useLevelStore();
   const { unlockAchievement } = useAchievementStore();
   const { startGame, endGame } = useGameStore();
   const { 
     trustValue, 
     trustLevel, 
     getTrustLevelName, 
-    getLevelReplayStats,
-    updateTrustValue
+    completeLevel: completeStoryLevel
   } = useStoryStore();
 
   // 蜜糖老师反馈状态
@@ -244,8 +243,11 @@ const AssessmentGame = () => {
     const finalScore = Math.round((correctCount / totalQuestions) * 100);
     const accuracy = correctCount / totalQuestions;
     
-    completeLevel('L2', finalScore);
+    completeLevelStore('L2', finalScore);
     
+    // 使用 storyStore 的 completeLevel 来正确更新好感度和 replayStats
+    const trustCalcResult = completeStoryLevel('L2', accuracy);
+
     // 解锁成就
     if (finalScore >= 90) {
       unlockAchievement('perfect_score');
@@ -254,28 +256,8 @@ const AssessmentGame = () => {
       unlockAchievement('assessment_pass');
     }
 
-    // =====================
-    // 计算好感度变化（匹配天才人设）
-    // =====================
-    const replayStats = getLevelReplayStats('L2');
-    const playCount = replayStats?.playCount || 0;
-    
-    const trustCalcResult = trustCalculator.calculateLevelTrust(
-      'L2',
-      accuracy,
-      playCount === 0,
-      playCount + 1
-    );
-
-    // 更新好感度
-    const oldLevel = trustLevel;
-    trustCalcResult.sources.forEach(source => {
-      if (source.amount !== 0) {
-        updateTrustValue(source.amount, source);
-      }
-    });
-
     // 设置反馈显示
+    const oldLevel = trustLevel;
     const feedback = trustCalcResult.feedback || MISS_HONEY_FEEDBACK.poor;
     const newValue = Math.max(0, Math.min(100, trustValue + trustCalcResult.totalTrust));
     const newTrustLevel = useStoryStore.getState().trustLevel;
