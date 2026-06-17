@@ -49,8 +49,13 @@ function createWindow() {
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
-    // 生产模式：加载构建后的文件
-    mainWindow.loadFile(join(__dirname, '../dist/index.html'));
+    // 生产模式：加载构建后的文件（适配 asar 打包）
+    const isAsar = app.isPackaged;
+    const distPath = isAsar
+      ? join(process.resourcesPath, 'app.asar', 'dist', 'index.html')
+      : join(__dirname, '..', 'dist', 'index.html');
+    console.log('Loading from:', distPath);
+    mainWindow.loadFile(distPath);
   }
 
   // 窗口关闭时清理

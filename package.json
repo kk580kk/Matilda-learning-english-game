@@ -19,7 +19,11 @@
     "build:electron": "tsc -p electron/tsconfig.json",
     "electron:build:mac": "npm run build:electron && npm run build:electron:web && electron-builder --mac",
     "electron:build:win": "npm run build:electron && npm run build:electron:web && electron-builder --win",
-    "electron:build:linux": "npm run build:electron && npm run build:electron:web && electron-builder --linux"
+    "electron:build:linux": "npm run build:electron && npm run build:electron:web && electron-builder --linux",
+    "electron:test:build": "npm run build:electron && npm run build:electron:web",
+    "electron:test": "npm run electron:test:build && cross-env NODE_ENV=production electron .",
+    "electron:test:win": "npm run electron:test:build && npx electron-builder --win --dir",
+    "electron:test:mac": "npm run electron:test:build && npx electron-builder --mac --dir"
   },
   "dependencies": {
     "framer-motion": "^11.11.17",

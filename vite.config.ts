@@ -8,8 +8,8 @@ const isElectronBuild = process.env.ELECTRON_BUILD === 'true';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  // Electron 构建使用根路径，Web 构建使用 GitHub Pages 路径
-  base: isElectronBuild ? '/' : '/Matilda-learning-english-game/',
+  // Electron 构建使用相对路径（适配 file:// 协议），Web 构建使用 GitHub Pages 路径
+  base: isElectronBuild ? './' : '/Matilda-learning-english-game/',
   build: {
     // Web 构建输出目录
     outDir: 'dist',
