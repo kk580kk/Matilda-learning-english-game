@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
+import { getStorage } from '../utils/storage';
 import { LevelProgress, LevelStatus, LevelConfig } from '../types';
 import { LEVEL_CONFIGS, getNextLevelId } from '../data/levels/config';
 
@@ -83,7 +84,7 @@ export const useLevelStore = create<LevelState>()(
     }),
     {
       name: 'matilda-level-storage',
-      storage: createJSONStorage(() => localStorage)
+      storage: getStorage() as any
     }
   )
 );

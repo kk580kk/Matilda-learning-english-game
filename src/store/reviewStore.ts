@@ -4,8 +4,9 @@
  */
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { 
+import { persist } from 'zustand/middleware';
+import { getStorage } from '../utils/storage';
+import {  
   ReviewCard, 
   ReviewSession,
   CardStatus,
@@ -205,7 +206,7 @@ export const useReviewStore = create<ReviewState>()(
     }),
     {
       name: 'matilda-review-storage',
-      storage: createJSONStorage(() => localStorage),
+      storage: getStorage() as any,
       partialize: (state) => ({
         reviewQueue: state.reviewQueue,
         todayStats: state.todayStats,

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
+import { getStorage } from '../utils/storage';
 
 interface GameState {
   isPlaying: boolean;
@@ -61,7 +62,7 @@ export const useGameStore = create<GameState>()(
     }),
     {
       name: 'matilda-game-storage',
-      storage: createJSONStorage(() => localStorage)
+      storage: getStorage() as any
     }
   )
 );

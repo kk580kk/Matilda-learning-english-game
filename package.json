@@ -1,12 +1,25 @@
 {
   "name": "matilda-learning-english-game",
+  "productName": "Matilda 学英语",
   "private": true,
   "version": "2.0.0",
-  "type": "module",
+  "description": "Matilda English Learning Game - 一个有趣的英语学习游戏",
+  "author": "kk580kk",
+  "license": "MIT",
+  "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "build:web": "npm run build",
+    "preview": "vite preview",
+    "electron:dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && npm run electron:start\"",
+    "electron:start": "cross-env NODE_ENV=development electron .",
+    "electron:build": "npm run build:electron && npm run build:electron:web && electron-builder",
+    "build:electron:web": "cross-env ELECTRON_BUILD=true vite build",
+    "build:electron": "tsc -p electron/tsconfig.json",
+    "electron:build:mac": "npm run build:electron && npm run build:electron:web && electron-builder --mac",
+    "electron:build:win": "npm run build:electron && npm run build:electron:web && electron-builder --win",
+    "electron:build:linux": "npm run build:electron && npm run build:electron:web && electron-builder --linux"
   },
   "dependencies": {
     "framer-motion": "^11.11.17",
@@ -20,7 +33,70 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
+    "concurrently": "^10.0.3",
+    "cross-env": "^7.0.3",
+    "electron": "^42.4.1",
+    "electron-builder": "^26.15.3",
     "typescript": "~5.6.2",
-    "vite": "^5.4.10"
+    "vite": "^5.4.10",
+    "wait-on": "^9.0.10"
+  },
+  "build": {
+    "appId": "com.matilda.learning-english-game",
+    "productName": "Matilda 学英语",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.education",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
+    },
+    "dmg": {
+      "title": "Matilda 学英语"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Education"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "kk580kk",
+      "repo": "Matilda-learning-english-game"
+    }
   }
 }

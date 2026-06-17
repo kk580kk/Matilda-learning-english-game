@@ -4,8 +4,9 @@
  */
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { 
+import { persist } from 'zustand/middleware';
+import { getStorage } from '../utils/storage';
+import {  
   UserProfile, 
   ExamType, 
   CEFRLevel, 
@@ -351,7 +352,7 @@ export const useUserStore = create<UserState>()(
     }),
     {
       name: 'matilda-user-storage',
-      storage: createJSONStorage(() => localStorage),
+      storage: getStorage() as any as any,
       partialize: (state) => ({ profile: state.profile }),
     }
   )

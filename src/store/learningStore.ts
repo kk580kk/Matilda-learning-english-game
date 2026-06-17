@@ -4,8 +4,9 @@
  */
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { 
+import { persist } from 'zustand/middleware';
+import { getStorage } from '../utils/storage';
+import {  
   LevelLearningProgress,
   LearningPhase,
   LevelReport,
@@ -195,7 +196,7 @@ export const useLearningStore = create<LearningState>()(
     }),
     {
       name: 'matilda-learning-storage',
-      storage: createJSONStorage(() => localStorage),
+      storage: getStorage() as any,
       partialize: (state) => ({
         currentLevelId: state.currentLevelId,
         currentPhase: state.currentPhase,
