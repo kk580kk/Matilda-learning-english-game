@@ -88,18 +88,12 @@ jobs:
       - name: Sign macOS App (Ad-hoc)
         if: matrix.target == 'mac'
         run: |
-          # Ad-hoc sign all .app bundles
+          # Ad-hoc sign all .app bundles (including nested helpers)
           find release -name "*.app" -type d | while read app; do
             codesign --force --deep --sign - "$app"
           done
-          # Rebuild DMGs with signed apps (remove old DMGs first)
-          rm -f release/*.dmg
-          for appdir in release/*.app; do
-            [ -d "$appdir" ] || continue
-            appname="$(basename "$appdir" .app)"
-            dmgname="${appname}.dmg"
-            hdiutil create -volname "$appname" -srcfolder "$appdir" -format UDZO -ov "release/$dmgname"
-          done
+          # Note: electron-builder already created signed DMGs
+          # We only needed to sign the .app bundles for Gatekeeper compliance
 
       - name: Upload Release Asset
         if: startsWith(github.ref, 'refs/tags/v')
