@@ -4,7 +4,7 @@
 
 一款开源免费的英语学习游戏，将《玛蒂尔达》原著剧情与中考/四级备考深度融合。
 
-**双分发模式**：Web 在线体验 + Electron 桌面版（同一套代码）
+**三渠道分发**：Web（零门槛）+ GitHub Releases（桌面版）+ Mac App Store（正式版）
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![React](https://img.shields.io/badge/react-18.x-61DAFB.svg)
@@ -21,31 +21,41 @@
 
 无需注册，打开即玩。
 
-### 方式二：下载桌面版
+### 方式二：下载桌面版（GitHub Releases）
 
 | 平台 | 下载 | 说明 |
 |------|------|------|
-| macOS | [下载 .dmg](https://github.com/kk580kk/Matilda-learning-english-game/releases) | 独立应用，家长感知更正式 |
-| Windows | [下载 .exe](https://github.com/kk580kk/Matilda-learning-english-game/releases) | 独立应用，家长感知更正式 |
+| macOS | [下载 .dmg](https://github.com/kk580kk/Matilda-learning-english-game/releases) | 独立应用，内测/公测 |
+| Windows | [下载 .exe](https://github.com/kk580kk/Matilda-learning-english-game/releases) | 独立应用，内测/公测 |
 | Linux | [下载 .AppImage](https://github.com/kk580kk/Matilda-learning-english-game/releases) | 独立应用，开箱即用 |
 
-**Web 版 vs 桌面版**：同一套 React 代码，两个分发渠道
+### 方式三：Mac App Store（正式版）
 
-| 维度 | Web 版 | 桌面版 | 说明 |
-|------|--------|--------|------|
-| **核心功能** | ✅ 完整关卡、好感度、成就 | ✅ 完全相同 | 代码一致 |
-| **数据存储** | localStorage（5MB） | 本地文件（无上限） | 浏览器限制 |
-| **离线使用** | ⚠️ 需网络加载 | ✅ 完全离线 | 技术差异 |
-| **本地 AI** | ❌ 不支持 | ✅ 支持 Ollama | 浏览器 CORS 限制 |
-| **文件导入导出** | ❌ 不支持 | ✅ 支持 | 浏览器沙箱限制 |
+**即将上线（M10）**
 
-**为什么两个版本？**
-- Web 版：零门槛获客，不改变原有分发逻辑
-- 桌面版：软件分发形态，解锁浏览器限制的功能
+- ✅ Apple 官方审核，家长信任度高
+- ✅ 教育分类自然流量
+- ✅ 原生 macOS 体验（菜单栏、通知中心、Dock）
+- ✅ 本地存档导出/导入
 
-**用户选择**：
-- 想马上体验 → Web 版（打开即玩）
-- 要本地存档 → 桌面版（数据持久化）
+[在 Mac App Store 上查看](https://apps.apple.com)（上线后更新链接）
+
+**三渠道对比**
+
+| 渠道 | 状态 | 特点 | 适合人群 |
+|------|------|------|----------|
+| **Web** | ✅ 已上线 | 零门槛，打开即玩 | 首次体验、教师演示 |
+| **GitHub** | 🆕 M4 启动 | 直接下载，快速迭代 | 深度用户、内测反馈 |
+| **MAS** | ⏳ M10 上线 | Apple 审核，信任背书 | 家长、大众用户 |
+
+**技术差异（同一套代码）**
+
+| 能力 | Web | 桌面版 | 说明 |
+|------|-----|--------|------|
+| 核心功能 | ✅ | ✅ 相同 | React 代码一致 |
+| 本地存档 | ❌ 5MB | ✅ 无限制 | 浏览器限制 |
+| 完全离线 | ⚠️ | ✅ | 技术差异 |
+| 本地 AI | ❌ | ✅ Ollama | CORS 限制 |
 
 ### 方式三：本地开发
 
