@@ -85,6 +85,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Sign macOS App (Ad-hoc)
+        if: matrix.target == 'mac'
+        run: |
+          find release -name "*.app" -type d | while read app; do
+            codesign --force --deep --sign - "$app"
+          done
+          hdiutil convert release/*.dmg -format UDZO -o release/signed.dmg
+          mv release/signed.dmg release/*.dmg
+
       - name: Upload Release Asset
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v1

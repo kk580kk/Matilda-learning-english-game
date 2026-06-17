@@ -68,8 +68,13 @@ function createWindow() {
         mainWindow.webContents.openDevTools();
     }
     else {
-        // 生产模式：加载构建后的文件
-        mainWindow.loadFile((0, path_1.join)(__dirname, '../dist/index.html'));
+        // 生产模式：加载构建后的文件（适配 asar 打包）
+        const isAsar = electron_1.app.isPackaged;
+        const distPath = isAsar
+            ? (0, path_1.join)(process.resourcesPath, 'app.asar', 'dist', 'index.html')
+            : (0, path_1.join)(__dirname, '..', 'dist', 'index.html');
+        console.log('Loading from:', distPath);
+        mainWindow.loadFile(distPath);
     }
     // 窗口关闭时清理
     mainWindow.on('closed', () => {

@@ -59,6 +59,7 @@
       "category": "public.app-category.education",
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
+      "sign": false,
       "target": [
         {
           "target": "dmg",
