@@ -4,7 +4,7 @@
 
 一款开源免费的英语学习游戏，将《玛蒂尔达》原著剧情与中考/四级备考深度融合。
 
-**双端支持**：Web 在线体验（零门槛）+ Electron 桌面版（功能完整）
+**双分发模式**：Web 在线体验 + Electron 桌面版（同一套代码）
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![React](https://img.shields.io/badge/react-18.x-61DAFB.svg)
@@ -29,7 +29,7 @@
 | Windows | [下载 .exe](https://github.com/kk580kk/Matilda-learning-english-game/releases) | 独立应用，家长感知更正式 |
 | Linux | [下载 .AppImage](https://github.com/kk580kk/Matilda-learning-english-game/releases) | 独立应用，开箱即用 |
 
-**Web 版 vs 桌面版**：同一套代码，同一套功能
+**Web 版 vs 桌面版**：同一套 React 代码，两个分发渠道
 
 | 维度 | Web 版 | 桌面版 | 说明 |
 |------|--------|--------|------|
@@ -39,8 +39,13 @@
 | **本地 AI** | ❌ 不支持 | ✅ 支持 Ollama | 浏览器 CORS 限制 |
 | **文件导入导出** | ❌ 不支持 | ✅ 支持 | 浏览器沙箱限制 |
 
-- **Web 版**：零门槛，打开即玩，适合首次体验
-- **桌面版**：数据持久化，完全离线，可扩展本地 AI
+**为什么两个版本？**
+- Web 版：零门槛获客，不改变原有分发逻辑
+- 桌面版：软件分发形态，解锁浏览器限制的功能
+
+**用户选择**：
+- 想马上体验 → Web 版（打开即玩）
+- 要本地存档 → 桌面版（数据持久化）
 
 ### 方式三：本地开发
 
