@@ -15,27 +15,23 @@
 
 ## 🚀 快速开始
 
-### 方式一：在线体验（零门槛）
+### 方式一：在线体验（推荐）
 
 访问 **[https://kk580kk.github.io/Matilda-learning-english-game](https://kk580kk.github.io/Matilda-learning-english-game)**
 
-无需注册，打开即玩。支持前 2 关免费体验。
+无需注册，打开即玩。
 
-### 方式二：下载桌面版（推荐 ⭐）
+### 方式二：下载桌面版
 
-| 平台 | 下载 | 特点 |
+| 平台 | 下载 | 说明 |
 |------|------|------|
-| macOS | [下载 .dmg](https://github.com/kk580kk/Matilda-learning-english-game/releases) | 完全离线，数据本地存储 |
-| Windows | [下载 .exe](https://github.com/kk580kk/Matilda-learning-english-game/releases) | 自动更新，AI 辅助学习 |
-| Linux | [下载 .AppImage](https://github.com/kk580kk/Matilda-learning-english-game/releases) | 开箱即用，跨发行版 |
+| macOS | [下载 .dmg](https://github.com/kk580kk/Matilda-learning-english-game/releases) | 独立应用，家长感知更正式 |
+| Windows | [下载 .exe](https://github.com/kk580kk/Matilda-learning-english-game/releases) | 独立应用，家长感知更正式 |
+| Linux | [下载 .AppImage](https://github.com/kk580kk/Matilda-learning-english-game/releases) | 独立应用，开箱即用 |
 
-**桌面版优势**：
-- ✅ 完全离线使用，无需网络
-- ✅ 学习进度本地持久化（SQLite）
-- ✅ 本地 Ollama AI 辅助出题/评估
-- ✅ 导入自定义题库（JSON/CSV）
-- ✅ 导出学习报告
-- ✅ 自动更新
+**Web 版 vs 桌面版**：功能完全一致，代码完全相同
+- Web 版：零门槛，打开链接即玩
+- 桌面版：独立窗口，家长/学校感知更正式
 
 ### 方式三：本地开发
 
@@ -75,9 +71,7 @@ npm run electron:dev
 ### 桌面端（Electron）
 | 技术 | 版本 | 用途 |
 |------|------|------|
-| **Electron** | ^28.0 | 桌面应用壳 |
-| **better-sqlite3** | ^9.0 | 本地数据库 |
-| **electron-updater** | ^6.0 | 自动更新 |
+| **Electron** | ^28.0 | 桌面应用壳（仅打包，不改代码） |
 | **electron-builder** | ^24.0 | 安装包构建 |
 
 ---
