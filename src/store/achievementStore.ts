@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { getStorage } from '../utils/storage';
 import { Achievement, AchievementCondition, AchievementCategory, AchievementUnlockEvent, AchievementStats } from '../types';
 import { ACHIEVEMENTS } from '../data/achievements';
 import { useStoryStore } from './storyStore';
@@ -513,7 +512,6 @@ export const useAchievementStore = create<AchievementState>()(
     }),
     {
       name: 'matilda-achievement-storage',
-      storage: getStorage() as any,
       partialize: (state) => ({
         unlocked: state.unlocked,
         unlockTimes: state.unlockTimes,
